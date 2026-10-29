@@ -764,6 +764,24 @@ const App = {
       f.y = fls[f.floor].elevation + sunkenOffset;
     }
 
+    // Align U9 & U8 SW staircases across B1..3F to the exact same vertical stairwell shaft as 2F_to_3F
+    // so lower flights never protrude into the 1F/2F/3F stairwell hall landing slabs!
+    for (const prefix of ['u9_sw_stair', 'u8_sw_stair']) {
+      const refSt = this.data.stairs.find(s => s.id === `${prefix}_2F_to_3F`);
+      if (refSt) {
+        for (const flSuffix of ['B1_to_1F', '1F_to_2F']) {
+          const targetSt = this.data.stairs.find(s => s.id === `${prefix}_${flSuffix}`);
+          if (targetSt && targetSt.steps.length === refSt.steps.length) {
+            for (let i = 0; i < refSt.steps.length; i++) {
+              targetSt.steps[i].poly = refSt.steps[i].poly.map(pt => [pt[0], pt[1]]);
+              targetSt.steps[i].center[0] = refSt.steps[i].center[0];
+              targetSt.steps[i].center[2] = refSt.steps[i].center[2];
+            }
+          }
+        }
+      }
+    }
+
     const mapRange = {
       'B1_to_1F': [fls['B1'].elevation, fls['1F'].elevation],
       '1F_to_2F': [fls['1F'].elevation, fls['2F'].elevation],
@@ -1811,10 +1829,13 @@ const App = {
       // 2F Outdoor Walkways, Platforms & Balustrades around Voids (U11 & U10)
       if (this.floorFilter === 'ALL' || this.floorFilter === '2F') {
         const y2 = this.data.floors['2F'].elevation;
-        // 1. U11 2F East Platform Perimeter (starts at X=22.85..23.35 so the 1F->2F Courtyard Stair at X=21.45..22.82 is 100% open to the sky!)
+        // 1. U11 2F East Platform Perimeter (flush with 1F->2F Courtyard Stair East edge X=22.82 & extending North to Z=-18.02 so zero slab gap exists!)
         const darkSlateTileCol = [0.25, 0.27, 0.28, 9.0]; // Photo 6: Dark charcoal-slate narrow brick gallery pavers
-        const platPoly = [[22.85, -5.36], [25.96, -5.36], [26.80, -17.20], [23.35, -16.50]];
+        const platPoly = [[22.82, -5.36], [26.04, -5.36], [26.96, -18.02], [22.82, -17.15]];
         pushPrism(platPoly, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.7], true);
+        // Top landing slab right at the exit of U11 1F->2F Courtyard Straight Stair (X=21.45..23.40, Z=-15.35..-18.02)
+        const cyStairTopLanding2F = [[21.45, -15.35], [23.40, -15.35], [23.40, -18.02], [21.45, -17.55]];
+        pushPrism(cyStairTopLanding2F, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.6], true);
         // 2. 80cm Downward Structural Soil Trough (向下的覆土层: y2 - 0.80m .. y2 - 0.01m)
         const soilTroughPoly = [[22.92, -6.54], [26.02, -6.54], [26.63, -15.05], [23.52, -15.05]];
         pushPrism(soilTroughPoly, y2 - 0.80, y2 - 0.01, [0.94, 0.93, 0.90, 1.0], [0.65, 0.62, 0.58, 0.55], false);
@@ -1829,7 +1850,7 @@ const App = {
 
         const walkSouth = [[6.55, -5.36], [22.85, -5.36], [22.85, -7.01], [6.75, -7.01]];
         const walkWest  = [[6.55, -7.01], [8.25, -7.01], [8.97, -13.60], [7.45, -13.60]];
-        const walkNorth = [[7.45, -13.60], [23.40, -16.95], [23.35, -15.35], [21.65, -15.35], [8.97, -12.50]];
+        const walkNorth = [[7.45, -13.60], [26.96, -18.02], [26.80, -15.35], [21.65, -15.35], [8.97, -12.50]];
         pushPrism(walkSouth, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.6], true);
         pushPrism(walkWest,  y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.6], true);
         pushPrism(walkNorth, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.6], true);
@@ -1838,8 +1859,8 @@ const App = {
         // Skip segment 2 ([22.85,-15.35]->[21.65,-15.35]) where the 1F->2F Courtyard Stair arrives at 2F!
         pushGalleryBalustrade3D(void2F, y2, 1.08, [2]);
 
-        // 4. U10 2F Courtyard Gallery Walkways + Open 2F East Platform Pocket Garden (二楼东侧平台花园园景)
-        const u10PlatPoly = [[46.25, -2.18], [49.45, -2.18], [49.45, -16.78], [46.25, -16.78]];
+        // 4. U10 2F Courtyard Gallery Walkways + Open 2F East Platform Pocket Garden (flush with u10_courtyard_stair East edge X=46.08!)
+        const u10PlatPoly = [[46.08, -2.18], [49.45, -2.18], [49.45, -16.78], [46.08, -16.78]];
         const u10SoilTrough = [[46.42, -3.50], [49.28, -3.50], [49.28, -15.40], [46.42, -15.40]];
         pushPrism(u10PlatPoly, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.7], true);
         pushPrism(u10SoilTrough, y2 - 0.80, y2 - 0.01, [0.94, 0.93, 0.90, 1.0], [0.65, 0.62, 0.58, 0.55], false);
@@ -1860,12 +1881,12 @@ const App = {
         for (const wPoly of [u10WalkS, u10WalkW, u10WalkN]) {
           pushPrism(wPoly, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.6], true);
         }
-        // U10 2F Courtyard Balustrade: skip segment 1 ([45.00,-3.74]->[46.25,-3.74], top exit of 1F->2F Courtyard Stair!)
-        const u10Void2F = [[33.40, -3.74], [45.00, -3.74], [46.25, -3.74], [46.25, -15.22], [34.20, -15.22]];
+        // U10 2F Courtyard Balustrade: skip segment 1 ([45.00,-3.74]->[46.08,-3.74], top exit of 1F->2F Courtyard Stair!)
+        const u10Void2F = [[33.40, -3.74], [45.00, -3.74], [46.08, -3.74], [46.08, -15.22], [34.20, -15.22]];
         pushGalleryBalustrade3D(u10Void2F, y2, 1.08, [1]);
 
-        // 5. U9 2F Courtyard Gallery Walkways + Open 2F East Platform Pocket Garden (U9 平面示意.pdf P3 露台花园 3.450)
-        const u9PlatPoly = [[67.45, 1.12], [70.65, 1.12], [70.65, -14.58], [67.45, -14.58]];
+        // 5. U9 2F Courtyard Gallery Walkways + Open 2F East Platform Pocket Garden (flush with u9_courtyard_stair East edge X=67.23!)
+        const u9PlatPoly = [[67.23, 1.12], [70.65, 1.12], [70.65, -14.58], [67.23, -14.58]];
         const u9SoilTrough = [[67.62, -0.20], [70.48, -0.20], [70.48, -13.20], [67.62, -13.20]];
         pushPrism(u9PlatPoly, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.7], true);
         pushPrism(u9SoilTrough, y2 - 0.80, y2 - 0.01, [0.94, 0.93, 0.90, 1.0], [0.65, 0.62, 0.58, 0.55], false);
@@ -1884,13 +1905,13 @@ const App = {
         for (const wPoly of [u9WalkS, u9WalkW, u9WalkN]) {
           pushPrism(wPoly, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.6], true);
         }
-        // Skip segment 1 ([66.05,-0.44]->[67.45,-0.44], top exit of U9 1F->2F Courtyard Stair!)
-        const u9Void2F = [[56.88, -0.44], [66.05, -0.44], [67.45, -0.44], [67.45, -13.02], [56.88, -13.02]];
+        // Skip segment 1 ([66.05,-0.44]->[67.23,-0.44], top exit of U9 1F->2F Courtyard Stair!)
+        const u9Void2F = [[56.88, -0.44], [66.05, -0.44], [67.23, -0.44], [67.23, -13.02], [56.88, -13.02]];
         pushGalleryBalustrade3D(u9Void2F, y2, 1.08, [1]);
 
-        // 6. U8 2F Courtyard Gallery Walkways + Angled 12.00° 2F East Platform Pocket Garden (U8 平面示意.pdf P3)
+        // 6. U8 2F Courtyard Gallery Walkways + Angled 12.00° 2F East Platform Pocket Garden (flush with u8_courtyard_stair East edge!)
         const xEU8_2 = (z) => 89.870 + ((z + 18.33) / 28.00) * 5.952;
-        const u8PlatPoly = [[xEU8_2(4.07) - 3.27, 4.07], [xEU8_2(4.07), 4.07], [xEU8_2(-12.73), -12.73], [xEU8_2(-12.73) - 3.27, -12.73]];
+        const u8PlatPoly = [[xEU8_2(4.07) - 3.45, 4.07], [xEU8_2(4.07), 4.07], [xEU8_2(-12.73), -12.73], [xEU8_2(-12.73) - 3.45, -12.73]];
         const u8SoilTrough = [[xEU8_2(2.75) - 3.10, 2.75], [xEU8_2(2.75) - 0.18, 2.75], [xEU8_2(-11.35) - 0.18, -11.35], [xEU8_2(-11.35) - 3.10, -11.35]];
         pushPrism(u8PlatPoly, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.7], true);
         pushPrism(u8SoilTrough, y2 - 0.80, y2 - 0.01, [0.94, 0.93, 0.90, 1.0], [0.65, 0.62, 0.58, 0.55], false);
@@ -1908,8 +1929,8 @@ const App = {
           pushPrism(wPoly, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.6], true);
         }
         // Skip segment 1 (top exit of U8 1F->2F Courtyard Stair!)
-        const u8StairExitW = xEU8_2(2.51) - 3.27 - 1.32;
-        const u8Void2F = [[78.08, 2.51], [u8StairExitW, 2.51], [xEU8_2(2.51) - 3.27, 2.51], [xEU8_2(-11.17) - 3.27, -11.17], [78.08, -11.17]];
+        const u8StairExitW = xEU8_2(2.51) - 3.45 - 1.32;
+        const u8Void2F = [[78.08, 2.51], [u8StairExitW, 2.51], [xEU8_2(2.51) - 3.45, 2.51], [xEU8_2(-11.17) - 3.45, -11.17], [78.08, -11.17]];
         pushGalleryBalustrade3D(u8Void2F, y2, 1.08, [1]);
       }
 
@@ -1931,7 +1952,7 @@ const App = {
         const y3 = this.data.floors['3F'].elevation;
         const terSouth = [[6.30, -3.97], [25.85, -3.97], [26.06, -7.01], [6.65, -7.01]];
         const terWest  = [[6.55, -7.01], [8.25, -7.01], [8.97, -13.60], [7.45, -13.60]];
-        const terNorth = [[7.45, -13.60], [26.82, -17.55], [26.72, -16.25], [8.97, -12.50]];
+        const terNorth = [[7.45, -13.60], [26.96, -18.02], [26.72, -16.25], [8.97, -12.50]];
         const darkSlateTileCol3F = [0.25, 0.27, 0.28, 9.0];
         pushPrism(terSouth, y3 - 0.22, y3, darkSlateTileCol3F, [0.20, 0.22, 0.24, 0.7], true);
         pushPrism(terWest,  y3 - 0.22, y3, darkSlateTileCol3F, [0.20, 0.22, 0.24, 0.7], true);
@@ -2013,6 +2034,42 @@ const App = {
           pushLine([p1[0], y0, p1[1]], [p2[0], y0, p2[1]], [0.45, 0.45, 0.45, 0.7]);
         }
 
+        // U11 Staircase Landing & Threshold Watertight Floor Slab Patches (1F, 2F, 3F)
+        // Fills all missing slab cutouts around: (1) NW Main Spiral Staircase southern hall landing,
+        // (2) SE Secondary Staircase (second_stair) west landing & perimeter strips, and
+        // (3) NE Staircase & 2F/3F East Corridor connection to the U11-U10 doorway!
+        if (fl !== 'B1') {
+          const u11StairSlabPatches = [
+            // 1. NW Main Spiral Staircase Southern Staircase-Hall Landing (Z=-15.33..-13.55, X=2.65..7.85)
+            [[2.65, -13.55], [7.85, -13.55], [7.85, -15.33], [2.65, -15.33]],
+            // 2. SE Secondary Staircase (second_stair) West Entry/Exit Landing (X=19.20..21.52, Z=0.02..-4.20)
+            [[19.20, 0.02], [21.52, 0.02], [21.52, -4.20], [19.20, -4.20]],
+            // 3. SE Secondary Staircase North Wall & Corridor Strip (X=19.20..25.95, Z=-3.45..-4.20)
+            [[19.20, -3.45], [25.95, -3.45], [25.95, -4.20], [19.20, -4.20]],
+            // 4. SE Secondary Staircase South Outer Wall Strip (X=21.50..25.85, Z=0.02..-0.30)
+            [[21.50, 0.02], [25.85, 0.02], [25.85, -0.30], [21.50, -0.30]],
+            // 5. SE Secondary Staircase Central Flight Divider Strip (X=21.50..24.32, Z=-1.42..-2.33)
+            [[21.50, -1.42], [24.32, -1.42], [24.32, -2.33], [21.50, -2.33]],
+            // 6. NE Staircase & North-East Corridor Slab (X=21.40..27.10, Z=-16.70..-18.25)
+            [[21.40, -16.70], [27.10, -16.70], [27.10, -18.25], [21.40, -18.25]]
+          ];
+          if (fl === '1F' || fl === '2F') {
+            // Bridge South-East Hall from Z=-3.97 to Z=-5.36
+            u11StairSlabPatches.push([[19.20, -3.97], [26.04, -3.97], [26.04, -5.36], [19.20, -5.36]]);
+          }
+          if (fl === '2F') {
+            // Bridge 2F North-East Corridor & Platform right up to the 50cm party wall doorway (Z=-14.70..-18.02)
+            u11StairSlabPatches.push([[22.80, -14.70], [27.05, -14.70], [27.05, -18.02], [22.80, -18.02]]);
+          }
+          if (fl === '3F') {
+            // On 3F, no spiral flight rises above 3F: close the eastern start sector (X=5.25..7.75, Z=-15.33..-17.10)
+            u11StairSlabPatches.push([[5.25, -15.33], [7.75, -15.33], [7.75, -17.10], [6.15, -17.10]]);
+          }
+          for (const patch of u11StairSlabPatches) {
+            pushPrism(patch, y0 - fd.slab_thickness, y0, slabCol, [0.55, 0.53, 0.50, 0.45], true);
+          }
+        }
+
         // U10 Watertight Floor Slabs (with Central Courtyard Void, Stairwells, B1 Lightwells, 1F Recessed Courts & 3F [X] Voids cut out!)
         const u10SlabStrips = (fl === 'B1') ? [
           // South wing (East of SW stair X=28.62) + Full B1 base under SW stair
@@ -2030,45 +2087,63 @@ const App = {
           // East strip along U10 East wall
           [[43.34, -5.43], [49.54, -5.43], [49.54, -11.55], [43.34, -11.55]]
         ] : (fl === '1F') ? [
-          // 1F South-West Living Room (X=28.64..40.90, Z=3.42..-2.18, flush with South outer wall Z=3.42)
-          [[28.64, 3.42], [40.90, 3.42], [40.90, -2.18], [28.64, -2.18]],
-          // 1F SW Stairwell North Entrance Threshold (X=26.02..28.90, Z=-1.92..-2.18)
-          [[26.02, -1.92], [28.90, -1.92], [28.90, -2.18], [26.20, -2.18]],
+          // 1F South-West Living Room (X=28.62..40.90, Z=3.42..-2.18, flush with South outer wall Z=3.42)
+          [[28.62, 3.42], [40.90, 3.42], [40.90, -2.18], [28.62, -2.18]],
+          // 1F SW Stairwell North Entrance Threshold & Perimeter Strips (meeting step 0 & last step at Z=-1.55!)
+          [[26.02, -1.55], [28.90, -1.55], [28.90, -2.20], [26.15, -2.20]],
+          [[25.81, 3.42], [28.64, 3.42], [28.64, 3.18], [25.81, 3.18]],
+          [[25.81, 3.42], [26.22, 3.42], [26.22, -1.55], [26.02, -1.55]],
+          [[27.16, 2.05], [27.62, 2.05], [27.62, -1.55], [27.16, -1.55]],
           // 1F South-Mid Corridor north of SE Recessed Patio (X=40.90..44.35, Z=-0.18..-2.18)
           [[40.90, -0.18], [44.35, -0.18], [44.35, -2.18], [40.90, -2.18]],
           // 1F South-East Suite (X=44.35..49.45, Z=3.42..-2.18)
           [[44.35, 3.42], [49.45, 3.42], [49.45, -2.18], [44.35, -2.18]],
           // 1F West Gallery along party wall (X=26.20..31.72 -> 32.76, Z=-2.18..-16.78)
           [[26.20, -2.18], [31.72, -2.18], [32.76, -16.78], [27.24, -16.78]],
-          // 1F Elevator & Stair Lobby (X=27.24..31.62, Z=-16.78..-18.38 meeting NW stair step 0)
-          [[27.24, -16.78], [31.62, -16.78], [31.62, -18.38], [27.36, -18.38]],
-          // 1F North-West Wing (X=31.48..41.50, Z=-16.78..-22.48; east of NW stair, west of North Recessed Entrance Porch)
-          [[31.48, -16.78], [41.50, -16.78], [41.50, -22.48], [31.48, -22.48]],
+          // 1F Elevator & Stair Lobby (X=27.24..31.62, Z=-16.78..-18.62 meeting NW stair step 0 & last step!)
+          [[27.24, -16.78], [31.62, -16.78], [31.62, -18.62], [27.36, -18.62]],
+          [[28.76, -18.62], [30.38, -18.62], [30.38, -21.05], [28.76, -21.05]],
+          [[27.36, -18.62], [27.68, -18.62], [27.68, -22.48], [27.56, -22.48]],
+          [[27.56, -22.12], [31.50, -22.12], [31.50, -22.48], [27.56, -22.48]],
+          // 1F North-West Wing (X=31.46..41.50, Z=-16.78..-22.48; east of NW stair, west of North Recessed Entrance Porch)
+          [[31.46, -16.78], [41.50, -16.78], [41.50, -22.48], [31.46, -22.48]],
           // 1F North-East Wing (X=46.15..49.45, Z=-16.78..-22.48; east of North Recessed Entrance Porch)
           [[46.15, -16.78], [49.45, -16.78], [49.45, -22.48], [46.15, -22.48]],
           // 1F East Kitchen & Service Wing (X=46.25..49.45, Z=-2.18..-16.78)
           [[46.25, -2.18], [49.45, -2.18], [49.45, -16.78], [46.25, -16.78]]
         ] : (fl === '2F') ? [
-          // 2F South Wing Suites (X=28.64..49.45, Z=3.42..-2.18, flush with South outer wall Z=3.42)
-          [[28.64, 3.42], [49.45, 3.42], [49.45, -2.18], [28.64, -2.18]],
-          // 2F SW Stairwell North Entrance Threshold (X=26.02..28.90, Z=-1.92..-2.18)
-          [[26.02, -1.92], [28.90, -1.92], [28.90, -2.18], [26.20, -2.18]],
-          // 2F West Gallery along party wall (X=26.20..31.72 -> 32.76, Z=-2.18..-16.78)
-          [[26.20, -2.18], [31.72, -2.18], [32.76, -16.78], [27.24, -16.78]],
-          // 2F Elevator & Stair Lobby (X=27.24..31.62, Z=-16.78..-18.38 meeting NW stair)
-          [[27.24, -16.78], [31.62, -16.78], [31.62, -18.38], [27.36, -18.38]],
-          // 2F North Wing Suites (X=31.48..49.45, Z=-16.78..-22.48, flush with North outer wall Z=-22.48)
-          [[31.48, -16.78], [49.45, -16.78], [49.45, -22.48], [31.48, -22.48]]
+          // 2F South Wing Suites (X=28.62..49.45, Z=3.42..-2.18, flush with South outer wall Z=3.42)
+          [[28.62, 3.42], [49.45, 3.42], [49.45, -2.18], [28.62, -2.18]],
+          // 2F SW Stairwell North Entrance Threshold & Perimeter Strips (meeting step 0 & last step at Z=-1.55!)
+          [[26.02, -1.55], [28.90, -1.55], [28.90, -2.20], [26.15, -2.20]],
+          [[25.81, 3.42], [28.64, 3.42], [28.64, 3.18], [25.81, 3.18]],
+          [[25.81, 3.42], [26.22, 3.42], [26.22, -1.55], [26.02, -1.55]],
+          [[27.16, 2.05], [27.62, 2.05], [27.62, -1.55], [27.16, -1.55]],
+          // 2F West Gallery along party wall (X=26.20..31.72 -> 32.76, Z=-2.18..-16.88)
+          [[26.20, -2.18], [31.72, -2.18], [32.76, -16.88], [26.75, -16.88]],
+          // 2F Elevator & Stair Lobby (X=27.00..31.62, Z=-16.78..-18.62 meeting NW stair step 0 & last step!)
+          [[27.00, -16.78], [31.62, -16.78], [31.62, -18.62], [27.36, -18.62]],
+          [[28.76, -18.62], [30.38, -18.62], [30.38, -21.05], [28.76, -21.05]],
+          [[27.36, -18.62], [27.68, -18.62], [27.68, -22.48], [27.56, -22.48]],
+          [[27.56, -22.12], [31.50, -22.12], [31.50, -22.48], [27.56, -22.48]],
+          // 2F North Wing Suites (X=31.46..49.45, Z=-16.78..-22.48, flush with North outer wall Z=-22.48)
+          [[31.46, -16.78], [49.45, -16.78], [49.45, -22.48], [31.46, -22.48]]
         ] : [
-          // 3F South Wing Continuous Watertight Slab (X=28.64..49.45, Z=3.42..-0.78 — no missing slab holes, flush to X=49.45 East wall!)
-          [[28.64, 3.42], [49.45, 3.42], [49.45, -0.78], [28.64, -0.78]],
-          // 3F West Gallery (leaving SW Stairwell X=26.02..28.64, Z=-1.92..3.18 open!)
-          [[28.64, -0.78], [31.62, -0.78], [31.70, -1.92], [28.64, -1.92]],
-          [[26.02, -1.92], [31.70, -1.92], [32.76, -16.78], [27.24, -16.78]],
-          // 3F Elevator & Stair Lobby (X=27.24..31.62, Z=-16.78..-18.38 meeting NW stair)
-          [[27.24, -16.78], [31.62, -16.78], [31.62, -18.38], [27.36, -18.38]],
-          // 3F North Wing Continuous Watertight Slab (X=31.48..49.45, Z=-16.78..-22.48)
-          [[31.48, -16.78], [49.45, -16.78], [49.45, -22.48], [31.48, -22.48]]
+          // 3F South Wing Continuous Watertight Slab (X=28.62..49.45, Z=3.42..-0.78 — no missing slab holes, flush to X=49.45 East wall!)
+          [[28.62, 3.42], [49.45, 3.42], [49.45, -0.78], [28.62, -0.78]],
+          // 3F West Gallery & SW Stairwell Threshold (meeting SW Stairwell at Z=-1.55!)
+          [[28.62, -0.78], [31.62, -0.78], [31.70, -1.55], [28.62, -1.55]],
+          [[26.02, -1.55], [31.70, -1.55], [32.76, -16.78], [27.24, -16.78]],
+          [[25.81, 3.42], [28.64, 3.42], [28.64, 3.18], [25.81, 3.18]],
+          [[25.81, 3.42], [26.22, 3.42], [26.22, -1.55], [26.02, -1.55]],
+          [[27.16, 2.05], [27.62, 2.05], [27.62, -1.55], [27.16, -1.55]],
+          // 3F Elevator & Stair Lobby (X=27.24..31.62, Z=-16.78..-18.62 meeting NW stair)
+          [[27.24, -16.78], [31.62, -16.78], [31.62, -18.62], [27.36, -18.62]],
+          [[28.76, -18.62], [30.38, -18.62], [30.38, -21.05], [28.76, -21.05]],
+          [[27.36, -18.62], [27.68, -18.62], [27.68, -22.48], [27.56, -22.48]],
+          [[27.56, -22.12], [31.50, -22.12], [31.50, -22.48], [27.56, -22.48]],
+          // 3F North Wing Continuous Watertight Slab (X=31.46..49.45, Z=-16.78..-22.48)
+          [[31.46, -16.78], [49.45, -16.78], [49.45, -22.48], [31.46, -22.48]]
         ];
         for (const strip of u10SlabStrips) {
           pushPrism(strip, y0 - fd.slab_thickness, y0, slabCol, [0.55, 0.53, 0.50, 0.45], true);
@@ -2081,60 +2156,82 @@ const App = {
           pushPrism(lw2, y0 - 0.35, y0 - 0.05, [0.32, 0.53, 0.36, 4.0], [0.5, 0.5, 0.48, 0.7], true);
         }
 
-        // U9 Watertight Floor Slabs (B1, 1F, 2F, 3F — exact stepped Z = 6.72 .. -20.18!)
+        // U9 Watertight Floor Slabs (B1, 1F, 2F, 3F — SW stair unified to Z=2.52..6.47 so Z=1.12..2.52 is 100% solid landing on all floors!)
+        const u9StairPerimeterStrips = [
+          [[49.72, 6.72], [53.92, 6.72], [53.92, 6.47], [49.72, 6.47]],
+          [[49.72, 6.47], [49.95, 6.47], [49.95, 2.52], [49.72, 2.52]],
+          [[51.72, 5.32], [52.08, 5.32], [52.08, 2.52], [51.72, 2.52]],
+          [[49.72, -19.93], [53.92, -19.93], [53.92, -20.18], [49.72, -20.18]],
+          [[49.72, -14.58], [49.95, -14.58], [49.95, -19.93], [49.72, -19.93]],
+          [[51.72, -14.58], [52.08, -14.58], [52.08, -18.78], [51.72, -18.78]]
+        ];
         const u9SlabStrips = (fl === 'B1') ? [
           [[49.72, 6.72], [70.65, 6.72], [70.65, -4.55], [49.72, -4.55]],
           [[49.72, -4.55], [56.50, -4.55], [56.50, -10.15], [49.72, -10.15]],
           [[62.10, -4.55], [70.65, -4.55], [70.65, -10.15], [62.10, -10.15]],
           [[49.72, -10.15], [70.65, -10.15], [70.65, -22.38], [49.72, -22.38]]
         ] : (fl === '1F') ? [
-          [[53.92, 6.72], [63.57, 6.72], [63.57, 1.12], [53.92, 1.12]],
+          [[53.85, 6.72], [63.57, 6.72], [63.57, 1.12], [53.85, 1.12]],
           [[63.57, 3.12], [66.35, 3.12], [66.35, 1.12], [63.57, 1.12]],
           [[66.35, 6.72], [70.65, 6.72], [70.65, 1.12], [66.35, 1.12]],
-          [[49.72, 1.12], [55.32, 1.12], [55.32, -14.58], [49.72, -14.58]],
-          [[53.92, -14.58], [55.32, -14.58], [55.32, -20.18], [53.92, -20.18]],
+          [[49.72, 2.52], [55.32, 2.52], [55.32, -14.58], [49.72, -14.58]],
+          [[53.85, -14.58], [55.32, -14.58], [55.32, -20.18], [53.85, -20.18]],
           [[55.32, -14.58], [63.22, -14.58], [63.22, -20.18], [55.32, -20.18]],
-          [[67.45, 1.12], [70.65, 1.12], [70.65, -20.18], [67.45, -20.18]]
+          [[67.23, 1.12], [70.65, 1.12], [70.65, -20.18], [67.23, -20.18]],
+          ...u9StairPerimeterStrips
         ] : (fl === '2F') ? [
-          [[53.92, 6.72], [70.65, 6.72], [70.65, 1.12], [53.92, 1.12]],
-          [[49.72, 1.12], [55.32, 1.12], [55.32, -14.58], [49.72, -14.58]],
-          [[53.92, -14.58], [70.65, -14.58], [70.65, -20.18], [53.92, -20.18]]
+          [[53.85, 6.72], [70.65, 6.72], [70.65, 1.12], [53.85, 1.12]],
+          [[49.72, 2.52], [55.32, 2.52], [55.32, -14.58], [49.72, -14.58]],
+          [[53.85, -14.58], [70.65, -14.58], [70.65, -20.18], [53.85, -20.18]],
+          ...u9StairPerimeterStrips
         ] : [
-          [[53.92, 6.72], [70.65, 6.72], [70.65, 2.52], [53.92, 2.52]],
+          [[53.85, 6.72], [70.65, 6.72], [70.65, 2.52], [53.85, 2.52]],
           [[49.72, 2.52], [55.32, 2.52], [55.32, -6.98], [49.72, -6.98]],
           [[53.80, -6.98], [55.32, -6.98], [55.32, -9.53], [53.80, -9.53]],
           [[49.72, -9.53], [55.32, -9.53], [55.32, -14.58], [49.72, -14.58]],
-          [[53.92, -14.58], [70.65, -14.58], [70.65, -20.18], [53.92, -20.18]]
+          [[53.85, -14.58], [70.65, -14.58], [70.65, -20.18], [53.85, -20.18]],
+          ...u9StairPerimeterStrips
         ];
         for (const strip of u9SlabStrips) {
           pushPrism(strip, y0 - fd.slab_thickness, y0, slabCol, [0.55, 0.53, 0.50, 0.45], true);
         }
 
-        // U8 Watertight Floor Slabs (B1, 1F, 2F, 3F — exact stepped Z = 9.67 .. -18.33, 12.00° angled East wall!)
+        // U8 Watertight Floor Slabs (B1, 1F, 2F, 3F — SW stair unified to Z=5.47..9.42 so Z=4.07..5.47 is 100% solid landing on all floors!)
         const xEU8_s = (z) => 89.870 + ((z + 18.33) / 28.00) * 5.952;
+        const u8StairPerimeterStrips = [
+          [[70.92, 9.67], [75.12, 9.67], [75.12, 9.42], [70.92, 9.42]],
+          [[70.92, 9.42], [71.15, 9.42], [71.15, 5.47], [70.92, 5.47]],
+          [[72.92, 8.27], [73.28, 8.27], [73.28, 5.47], [72.92, 5.47]],
+          [[70.92, -18.08], [75.12, -18.08], [75.12, -18.33], [70.92, -18.33]],
+          [[70.92, -12.73], [71.15, -12.73], [71.15, -18.08], [70.92, -18.08]],
+          [[72.92, -12.73], [73.28, -12.73], [73.28, -16.93], [72.92, -16.93]]
+        ];
         const u8SlabStrips = (fl === 'B1') ? [
           [[70.92, 9.67], [xEU8_s(9.67), 9.67], [xEU8_s(-1.85), -1.85], [70.92, -1.85]],
           [[70.92, -1.85], [77.80, -1.85], [77.80, -7.45], [70.92, -7.45]],
           [[83.20, -1.85], [xEU8_s(-1.85), -1.85], [xEU8_s(-7.45), -7.45], [83.20, -7.45]],
           [[70.92, -7.45], [xEU8_s(-7.45), -7.45], [xEU8_s(-18.33), -18.33], [70.92, -18.33]]
         ] : (fl === '1F') ? [
-          [[75.12, 9.67], [85.62, 9.67], [85.62, 4.07], [75.12, 4.07]],
+          [[75.05, 9.67], [85.62, 9.67], [85.62, 4.07], [75.05, 4.07]],
           [[85.62, 6.07], [88.40, 6.07], [88.40, 4.07], [85.62, 4.07]],
           [[88.40, 9.67], [xEU8_s(9.67), 9.67], [xEU8_s(4.07), 4.07], [88.40, 4.07]],
-          [[70.92, 4.07], [76.52, 4.07], [76.52, -12.73], [70.92, -12.73]],
-          [[75.12, -12.73], [81.58, -12.73], [81.58, -18.33], [75.12, -18.33]],
+          [[70.92, 5.47], [76.52, 5.47], [76.52, -12.73], [70.92, -12.73]],
+          [[75.05, -12.73], [81.58, -12.73], [81.58, -18.33], [75.05, -18.33]],
           [[86.60, -12.73], [xEU8_s(-12.73), -12.73], [xEU8_s(-18.33), -18.33], [86.60, -18.33]],
-          [[xEU8_s(4.07) - 3.27, 4.07], [xEU8_s(4.07), 4.07], [xEU8_s(-12.73), -12.73], [xEU8_s(-12.73) - 3.27, -12.73]]
+          [[xEU8_s(4.07) - 3.45, 4.07], [xEU8_s(4.07), 4.07], [xEU8_s(-12.73), -12.73], [xEU8_s(-12.73) - 3.45, -12.73]],
+          ...u8StairPerimeterStrips
         ] : (fl === '2F') ? [
-          [[75.12, 9.67], [xEU8_s(9.67), 9.67], [xEU8_s(4.07), 4.07], [75.12, 4.07]],
-          [[70.92, 4.07], [76.52, 4.07], [76.52, -12.73], [70.92, -12.73]],
-          [[75.12, -12.73], [xEU8_s(-12.73), -12.73], [xEU8_s(-18.33), -18.33], [75.12, -18.33]]
+          [[75.05, 9.67], [xEU8_s(9.67), 9.67], [xEU8_s(4.07), 4.07], [75.05, 4.07]],
+          [[70.92, 5.47], [76.52, 5.47], [76.52, -12.73], [70.92, -12.73]],
+          [[75.05, -12.73], [xEU8_s(-12.73), -12.73], [xEU8_s(-18.33), -18.33], [75.05, -18.33]],
+          ...u8StairPerimeterStrips
         ] : [
-          [[75.12, 9.67], [xEU8_s(9.67), 9.67], [xEU8_s(5.47), 5.47], [75.12, 5.47]],
+          [[75.05, 9.67], [xEU8_s(9.67), 9.67], [xEU8_s(5.47), 5.47], [75.05, 5.47]],
           [[70.92, 5.47], [76.52, 5.47], [76.52, -6.68], [70.92, -6.68]],
           [[75.00, -6.68], [76.52, -6.68], [76.52, -9.23], [75.00, -9.23]],
           [[70.92, -9.23], [76.52, -9.23], [76.52, -12.73], [70.92, -12.73]],
-          [[75.12, -12.73], [xEU8_s(-12.73), -12.73], [xEU8_s(-18.33), -18.33], [75.12, -18.33]]
+          [[75.05, -12.73], [xEU8_s(-12.73), -12.73], [xEU8_s(-18.33), -18.33], [75.05, -18.33]],
+          ...u8StairPerimeterStrips
         ];
         for (const strip of u8SlabStrips) {
           pushPrism(strip, y0 - fd.slab_thickness, y0, slabCol, [0.55, 0.53, 0.50, 0.45], true);
@@ -2340,25 +2437,20 @@ const App = {
       //   5. North Connecting Doorway (Z=-15.55..-16.68, 1130mm walkthrough door connecting U11 & U10!)
       const push50cmPartyWallAssembly = () => {
         const xInU11 = (z) => 25.55 + (-z / 23.61) * 1.69;
+        // Strictly keep B1 & 1F 100% solid, keep both South & North staircase walls 100% solid on all floors,
+        // and open ONLY the 2F/3F corridor windows plus the widened 2.16m walkthrough doorway on 2F East (Z=-14.72..-16.88)!
         const infillZones = (fl === '3F')
           ? [
-              [-2.27, -4.07, '1800mm', 'portal'],
               [-5.60, -9.10, '3500mm', 'glazing_south'],
               [-12.12, -14.52, '2400mm', 'glazing_north']
             ]
           : (fl === '2F')
           ? [
-              [-2.27, -4.07, '1800mm', 'portal'],
               [-6.22, -10.22, '4000mm', 'glazing_south'],
               [-12.02, -14.52, '2500mm', 'glazing_north'],
-              [-15.55, -16.68, '1130mm', 'connect_door']
+              [-14.72, -16.88, '2160mm', 'connect_door']
             ]
-          : [
-              [-2.27, -4.07, '1800mm', 'portal'],
-              [-6.22, -10.22, '4000mm', 'portal'],
-              [-12.02, -14.52, '2500mm', 'portal'],
-              [-15.55, -16.68, '1130mm', 'connect_door']
-            ];
+          : [];
 
         const pushPartyPier50cm = (zA, zB, yB, yT) => {
           const xA = xInU11(zA), xB = xInU11(zB);
@@ -2394,7 +2486,7 @@ const App = {
           }
           if (chkPartyKnock) {
             const isDoor = (opKind === 'connect_door');
-            const openH  = Math.min(isDoor ? 2.30 : 2.75, effWallH);
+            const openH  = Math.min(isDoor ? 2.48 : 2.75, effWallH);
             if (effWallH > openH + 0.04) {
               pushPartyPier50cm(zStart, zEnd, y0 + openH, y1);
             }
@@ -2417,14 +2509,14 @@ const App = {
                   pushQuad([gxS, y0 + sillH + 0.02, zStart], [gxE, y0 + sillH + 0.02, zEnd], [gxE, y0 + openH - 0.02, zEnd], [gxS, y0 + openH - 0.02, zStart], -1, 0, 0, glassCol, false);
                 }
               } else if (isDoor) {
-                // Walkthrough Connecting Door Frame between U11 & U10 (Z=-15.55..-16.68, open passage with bronze jambs & header)
-                const jambS = [[xS, zStart], [xS + 0.50, zStart], [xS + 0.50, zStart - 0.055], [xS, zStart - 0.055]];
-                const jambN = [[xE, zEnd + 0.055], [xE + 0.50, zEnd + 0.055], [xE + 0.50, zEnd], [xE, zEnd]];
+                // Wide 2.16m Walkthrough Connecting Portal between U11 2F East & U10 2F West Gallery (Z=-14.72..-16.88)
+                const jambS = [[xS, zStart], [xS + 0.50, zStart], [xS + 0.50, zStart - 0.04], [xS, zStart - 0.04]];
+                const jambN = [[xE, zEnd + 0.04], [xE + 0.50, zEnd + 0.04], [xE + 0.50, zEnd], [xE, zEnd]];
                 pushPrism(jambS, y0, y0 + openH, frameCol, null, false);
                 pushPrism(jambN, y0, y0 + openH, frameCol, null, false);
-                pushPrism(infillPoly, y0 + openH - 0.05, y0 + openH, frameCol, null, false);
+                pushPrism(infillPoly, y0 + openH - 0.045, y0 + openH, frameCol, null, false);
                 // Flush stone threshold bridging the 50cm party wall doorway
-                pushPrism(infillPoly, y0 - 0.02, y0 + 0.01, [0.88, 0.86, 0.82, 6.0], null, true);
+                pushPrism(infillPoly, y0 - 0.02, y0 + 0.008, [0.88, 0.86, 0.82, 6.0], null, true);
               }
             }
           } else {
@@ -2826,17 +2918,31 @@ const App = {
       const u9FloorData  = this.data.u9?.floors?.[fl];
       const u8FloorData  = this.data.u8?.floors?.[fl];
       const isU11OuterShellDuplicate = (poly) => {
-        let maxDw = -999, maxDn = -999, maxDs = -999, maxDe = -999;
+        let minX = 999, maxX = -999, minZ = 999, maxZ = -999;
+        let maxDw = -999, maxDn = -999, maxDs = -999, maxDe = -999, maxDcyN = -999;
         for (const p of poly) {
+          if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0];
+          if (p[1] < minZ) minZ = p[1]; if (p[1] > maxZ) maxZ = p[1];
           const xw = 0.14 + (-p[1] / 18.36) * 2.56;
           const zn = -18.34 + ((p[0] - 2.70) / 24.64) * (-5.25);
           const xe = 25.55 + (-p[1] / 23.61) * 1.69;
-          maxDw = Math.max(maxDw, p[0] - xw);
-          maxDn = Math.max(maxDn, p[1] - zn);
-          maxDs = Math.max(maxDs, 0.02 - p[1]);
-          maxDe = Math.max(maxDe, xe - p[0]);
+          const zCyN = -13.88 + ((p[0] - 7.49) / 19.47) * (-4.14);
+          maxDw = Math.max(maxDw, Math.abs(p[0] - xw));
+          maxDn = Math.max(maxDn, Math.abs(p[1] - zn));
+          maxDs = Math.max(maxDs, Math.abs(p[1] - 0.02));
+          maxDe = Math.max(maxDe, Math.abs(p[0] - xe));
+          maxDcyN = Math.max(maxDcyN, Math.abs(p[1] - zCyN));
         }
-        return (maxDw < 0.52 || maxDn < 0.52 || maxDs < 0.48 || maxDe < 0.28);
+        // 1. Skip ONLY walls that lie along U11's 4 outer perimeter walls (or recessed window outer strips on S/N facades)
+        if (maxDw < 0.55 || maxDn < 0.62 || maxDs < 0.65 || maxDe < 0.52) return true;
+        if (fl !== 'B1' && minZ < -18.70 && maxZ > -21.95 && minX >= 8.30 && maxX <= 20.10) return true;
+        if (fl === 'B1') return false;
+        // 2. Skip walls that duplicate the Courtyard perimeter loops already drawn by pushMiteredWallLoop
+        if (minX >= 6.05 && maxX <= 7.65 && minZ >= -14.05 && maxZ <= -5.25) return true;
+        if (fl !== '3F' && minZ >= -5.85 && maxZ <= -5.30 && minX >= 6.20 && maxX <= 26.35) return true;
+        if (fl === '3F' && minZ >= -4.25 && maxZ <= -3.90 && minX >= 6.05 && maxX <= 20.55) return true;
+        if (maxDcyN < 0.55 && minX >= 7.20 && maxX <= 24.50) return true;
+        return false;
       };
       const getU11WallYRange = (poly) => {
         if (fl !== '1F') return [y0, y1];
@@ -2852,7 +2958,7 @@ const App = {
       };
       if (chkStruct) {
         for (const w of fd.structural_walls) {
-          if (w.type === 'exterior' || isU11OuterShellDuplicate(w.poly)) continue;
+          if (isU11OuterShellDuplicate(w.poly)) continue;
           const [wy0, wy1] = getU11WallYRange(w.poly);
           if (chkHighlight) {
             pushPrism(w.poly, wy0, wy1, structHighlightCol, highlightEdgeCol, true);
@@ -2869,6 +2975,30 @@ const App = {
                 pushPrism(w.poly, y0, y1, intWhiteColor, [0.75, 0.73, 0.70, 0.45], true, [0.86, 0.84, 0.81, 1.0]);
               }
             }
+          }
+        }
+        // Solid Stairwell Enclosure Walls for U11, U10, U9 & U8 (ensuring zero hollowed-out staircase sides on any floor!)
+        const stairEnclosureWalls = [
+          // U11 SE Secondary Staircase (second_stair) North enclosure wall separating stairwell from corridor
+          [[21.50, -3.42], [25.88, -3.42], [25.88, -3.62], [21.50, -3.62]],
+          // U10 SW Staircase East enclosure wall (X=28.62..28.84, Z=3.42..-1.55)
+          [[28.62, 3.42], [28.84, 3.42], [28.84, -1.55], [28.62, -1.55]],
+          // U10 NW Staircase East enclosure wall (X=31.46..31.68, Z=-18.35..-22.48)
+          [[31.46, -18.35], [31.68, -18.35], [31.68, -22.48], [31.46, -22.48]],
+          // U9 SW Staircase East enclosure wall (X=53.85..54.05, Z=6.72..2.52)
+          [[53.85, 6.72], [54.05, 6.72], [54.05, 2.52], [53.85, 2.52]],
+          // U9 NW Staircase East enclosure wall (X=53.85..54.05, Z=-14.58..-20.18)
+          [[53.85, -14.58], [54.05, -14.58], [54.05, -20.18], [53.85, -20.18]],
+          // U8 SW Staircase East enclosure wall (X=75.05..75.25, Z=9.67..5.47)
+          [[75.05, 9.67], [75.25, 9.67], [75.25, 5.47], [75.05, 5.47]],
+          // U8 NW Staircase East enclosure wall (X=75.05..75.25, Z=-12.73..-18.33)
+          [[75.05, -12.73], [75.25, -12.73], [75.25, -18.33], [75.05, -18.33]]
+        ];
+        for (const swPoly of stairEnclosureWalls) {
+          if (chkHighlight) {
+            pushPrism(swPoly, y0, y1, structHighlightCol, highlightEdgeCol, true);
+          } else {
+            pushPrism(swPoly, y0, y1, intWhiteColor, [0.75, 0.73, 0.70, 0.45], true, [0.86, 0.84, 0.81, 1.0]);
           }
         }
       }
@@ -3771,7 +3901,8 @@ const App = {
       for (const s of st.steps) {
         if (pointInPoly2D(x, z, s.poly) || pointInPoly2D(testX, testZ, s.poly)) {
           const d = Math.abs(s.y_top - currentY);
-          if (d < 1.35 && d < minDiff) {
+          // Use 0.55m (3 risers) instead of 1.35m so walking on the floor landing never snaps down through the floor slab!
+          if (d < 0.55 && d < minDiff) {
             minDiff = d;
             bestStep = s;
           }
@@ -3791,7 +3922,8 @@ const App = {
       for (const s of st.steps) {
         if (pointInPoly2D(x, z, s.poly)) {
           const d = Math.abs(s.y_top - currentY);
-          if (d < 1.35 && d < minDiff) {
+          // Strict 0.55m vertical capture threshold prevents snapping through floor slabs onto lower stair flights!
+          if (d < 0.55 && d < minDiff) {
             minDiff = d;
             bestStairY = s.y_top;
           }
@@ -3846,18 +3978,42 @@ const App = {
     }
     for (const st of this.data.stairs) {
       for (const s of st.steps) {
-        if (pointInPoly2D(x, z, s.poly) && Math.abs(y - s.y_top) < 1.2) {
+        if (pointInPoly2D(x, z, s.poly) && Math.abs(y - s.y_top) < 0.75) {
           if (st.type === 'spiral' && (sr < 1.05 || sr > 2.30)) return true;
           return false;
         }
       }
     }
+
+    // 2. 50cm Shared Party Wall between U11 and U10 (X = xInU11(z) .. xInU11(z) + 0.50):
+    //    Open ONLY on 2F at the widened walkthrough doorway Z = [-16.88 .. -14.72] when chk-party-knock is checked!
+    const xParty = 25.55 + (-z / 23.61) * 1.69;
+    if (z <= 0.02 && z >= -23.59 && x >= xParty - 0.04 && x <= xParty + 0.54) {
+      const partyKnock = document.getElementById('chk-party-knock')?.checked ?? true;
+      if (flKey === '2F' && partyKnock && z <= -14.72 && z >= -16.88) {
+        return false; // Walk right through the 2.16m wide 2F East connecting doorway!
+      }
+      return true;
+    }
+
+    // Helper to skip superseded U11 East/Outer shell wall polygons in fd.structural_walls
+    const isSupersededU11EastWall = (poly) => {
+      let maxDe = -999;
+      for (const p of poly) {
+        const xe = 25.55 + (-p[1] / 23.61) * 1.69;
+        maxDe = Math.max(maxDe, Math.abs(p[0] - xe));
+      }
+      return maxDe < 0.55;
+    };
+
     const fd = this.data.floors[flKey];
     for (const w of fd.structural_walls) {
+      if (isSupersededU11EastWall(w.poly)) continue;
       if (pointInPoly2D(x, z, w.poly)) return true;
     }
     if (document.getElementById('chk-part-walls')?.checked) {
       for (const w of fd.partition_walls) {
+        if (isSupersededU11EastWall(w.poly)) continue;
         if (pointInPoly2D(x, z, w.poly)) return true;
       }
     }
