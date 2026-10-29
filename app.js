@@ -4727,7 +4727,7 @@ const App = {
     }
 
     const container = document.getElementById('label-layer');
-    const showLabels = document.getElementById('chk-room-labels')?.checked ?? true;
+    const showLabels = document.getElementById('chk-room-labels')?.checked ?? false;
     container.innerHTML = '';
 
     const project = (pt) => {
