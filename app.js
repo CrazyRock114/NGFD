@@ -1831,13 +1831,13 @@ const App = {
         const y2 = this.data.floors['2F'].elevation;
         // 1. U11 2F East Platform Perimeter (flush with 1F->2F Courtyard Stair East edge X=22.82 & extending North to Z=-18.02 so zero slab gap exists!)
         const darkSlateTileCol = [0.25, 0.27, 0.28, 9.0]; // Photo 6: Dark charcoal-slate narrow brick gallery pavers
-        const platPoly = [[22.82, -5.36], [26.04, -5.36], [26.96, -18.02], [22.82, -17.15]];
+        const platPoly = [[22.82, -5.36], [25.95, -5.36], [26.85, -18.02], [22.82, -17.15]];
         pushPrism(platPoly, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.7], true);
         // Top landing slab right at the exit of U11 1F->2F Courtyard Straight Stair (X=21.45..23.40, Z=-15.35..-18.02)
         const cyStairTopLanding2F = [[21.45, -15.35], [23.40, -15.35], [23.40, -18.02], [21.45, -17.55]];
         pushPrism(cyStairTopLanding2F, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.6], true);
-        // 2. 80cm Downward Structural Soil Trough (向下的覆土层: y2 - 0.80m .. y2 - 0.01m)
-        const soilTroughPoly = [[22.92, -6.54], [26.02, -6.54], [26.63, -15.05], [23.52, -15.05]];
+        // 2. 80cm Downward Structural Soil Trough (向下的覆土层: y2 - 0.80m .. y2 - 0.01m, inset from East wall)
+        const soilTroughPoly = [[22.92, -6.54], [25.80, -6.54], [26.40, -15.05], [23.52, -15.05]];
         pushPrism(soilTroughPoly, y2 - 0.80, y2 - 0.01, [0.94, 0.93, 0.90, 1.0], [0.65, 0.62, 0.58, 0.55], false);
         // 3. U11 Flush Pocket Landscape Garden (齐平园景小花园: X=23.05..25.25, Z=-10.32..-11.92)
         const pocketBorderPoly = [[23.05, -10.32], [25.25, -10.32], [25.25, -11.92], [23.05, -11.92]];
@@ -1850,7 +1850,7 @@ const App = {
 
         const walkSouth = [[6.55, -5.36], [22.85, -5.36], [22.85, -7.01], [6.75, -7.01]];
         const walkWest  = [[6.55, -7.01], [8.25, -7.01], [8.97, -13.60], [7.45, -13.60]];
-        const walkNorth = [[7.45, -13.60], [26.96, -18.02], [26.80, -15.35], [21.65, -15.35], [8.97, -12.50]];
+        const walkNorth = [[7.45, -13.60], [26.85, -18.02], [26.70, -15.35], [21.65, -15.35], [8.97, -12.50]];
         pushPrism(walkSouth, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.6], true);
         pushPrism(walkWest,  y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.6], true);
         pushPrism(walkNorth, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.6], true);
@@ -1860,8 +1860,8 @@ const App = {
         pushGalleryBalustrade3D(void2F, y2, 1.08, [2]);
 
         // 4. U10 2F Courtyard Gallery Walkways + Open 2F East Platform Pocket Garden (flush with u10_courtyard_stair East edge X=46.08!)
-        const u10PlatPoly = [[46.08, -2.18], [49.45, -2.18], [49.45, -16.78], [46.08, -16.78]];
-        const u10SoilTrough = [[46.42, -3.50], [49.28, -3.50], [49.28, -15.40], [46.42, -15.40]];
+        const u10PlatPoly = [[46.08, -2.18], [49.26, -2.18], [49.26, -16.78], [46.08, -16.78]];
+        const u10SoilTrough = [[46.42, -3.50], [49.12, -3.50], [49.12, -15.40], [46.42, -15.40]];
         pushPrism(u10PlatPoly, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.7], true);
         pushPrism(u10SoilTrough, y2 - 0.80, y2 - 0.01, [0.94, 0.93, 0.90, 1.0], [0.65, 0.62, 0.58, 0.55], false);
         // U10 2F East Platform Flush Pocket Landscape Garden (X=46.85..48.95, Z=-7.20..-12.60)
@@ -1886,8 +1886,8 @@ const App = {
         pushGalleryBalustrade3D(u10Void2F, y2, 1.08, [1]);
 
         // 5. U9 2F Courtyard Gallery Walkways + Open 2F East Platform Pocket Garden (flush with u9_courtyard_stair East edge X=67.23!)
-        const u9PlatPoly = [[67.23, 1.12], [70.65, 1.12], [70.65, -14.58], [67.23, -14.58]];
-        const u9SoilTrough = [[67.62, -0.20], [70.48, -0.20], [70.48, -13.20], [67.62, -13.20]];
+        const u9PlatPoly = [[67.23, 1.12], [70.46, 1.12], [70.46, -14.58], [67.23, -14.58]];
+        const u9SoilTrough = [[67.62, -0.20], [70.32, -0.20], [70.32, -13.20], [67.62, -13.20]];
         pushPrism(u9PlatPoly, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.7], true);
         pushPrism(u9SoilTrough, y2 - 0.80, y2 - 0.01, [0.94, 0.93, 0.90, 1.0], [0.65, 0.62, 0.58, 0.55], false);
         const u9BorderPoly = [[68.05, -4.05], [70.15, -4.05], [70.15, -9.45], [68.05, -9.45]];
@@ -1911,8 +1911,8 @@ const App = {
 
         // 6. U8 2F Courtyard Gallery Walkways + Angled 12.00° 2F East Platform Pocket Garden (flush with u8_courtyard_stair East edge!)
         const xEU8_2 = (z) => 89.870 + ((z + 18.33) / 28.00) * 5.952;
-        const u8PlatPoly = [[xEU8_2(4.07) - 3.45, 4.07], [xEU8_2(4.07), 4.07], [xEU8_2(-12.73), -12.73], [xEU8_2(-12.73) - 3.45, -12.73]];
-        const u8SoilTrough = [[xEU8_2(2.75) - 3.10, 2.75], [xEU8_2(2.75) - 0.18, 2.75], [xEU8_2(-11.35) - 0.18, -11.35], [xEU8_2(-11.35) - 3.10, -11.35]];
+        const u8PlatPoly = [[xEU8_2(4.07) - 3.45, 4.07], [xEU8_2(4.07) - 0.19, 4.07], [xEU8_2(-12.73) - 0.19, -12.73], [xEU8_2(-12.73) - 3.45, -12.73]];
+        const u8SoilTrough = [[xEU8_2(2.75) - 3.10, 2.75], [xEU8_2(2.75) - 0.34, 2.75], [xEU8_2(-11.35) - 0.34, -11.35], [xEU8_2(-11.35) - 3.10, -11.35]];
         pushPrism(u8PlatPoly, y2 - 0.22, y2, darkSlateTileCol, [0.20, 0.22, 0.24, 0.7], true);
         pushPrism(u8SoilTrough, y2 - 0.80, y2 - 0.01, [0.94, 0.93, 0.90, 1.0], [0.65, 0.62, 0.58, 0.55], false);
         const u8BorderPoly = [[xEU8_2(-1.65) - 2.65, -1.65], [xEU8_2(-1.65) - 0.55, -1.65], [xEU8_2(-7.05) - 0.55, -7.05], [xEU8_2(-7.05) - 2.65, -7.05]];
@@ -2257,20 +2257,8 @@ const App = {
       const frameCol = [0.27, 0.29, 0.26, 1.0];
       const glassCol = [0.68, 0.84, 0.88, this.cameraMode === 'walk' ? 0.22 : 0.32];
 
-      const isCourtyardWallSpan = (oA, oB) => {
-        if (fl === 'B1') return false;
-        const mx = 0.5 * (oA[0] + oB[0]);
-        const mz = 0.5 * (oA[1] + oB[1]);
-        const inU11Cy = (mx > 5.80 && mx < 27.15 && mz < -3.80 && mz > -18.15);
-        const inU10Cy = (mx > 31.80 && mx < 49.95 && mz < -0.60 && mz > -17.00);
-        const inU9Cy  = (mx > 55.00 && mx < 70.50 && mz <  2.55 && mz > -14.85);
-        const inU8Cy  = (mx > 76.20 && mx < 94.50 && mz <  5.50 && mz > -13.00);
-        return inU11Cy || inU10Cy || inU9Cy || inU8Cy;
-      };
-
-      const pushDirectedWallSpan = (oA, oB, iA, iB, yB, yT, nx, nz, topCol, capBottom=false, closeEnds=false) => {
+      const pushDirectedWallSpan = (oA, oB, iA, iB, yB, yT, nx, nz, topCol, capBottom=false, closeEnds=false, isCy=false) => {
         if (yT <= yB + 0.005) return;
-        const isCy = isCourtyardWallSpan(oA, oB);
         const outCol = chkHighlight ? extHighlightCol : (isCy ? cyStonePaintCol : extBrickColor);
         const inCol  = chkHighlight ? extHighlightCol : intWhiteColor;
         const defaultCap = isCy ? topStoneCap : topBrickCap;
@@ -2296,7 +2284,7 @@ const App = {
         }
       };
 
-      const pushMiteredWallLoop = (loopPts, edgeOpeningsList, wallThick=0.26, skipEdges=[]) => {
+      const pushMiteredWallLoop = (loopPts, edgeOpeningsList, wallThick=0.26, skipEdges=[], cyEdges=[]) => {
         const m = loopPts.length;
         const halfT = wallThick * 0.5;
         const edgeNorms = [];
@@ -2329,15 +2317,16 @@ const App = {
           const [nx, nz] = edgeNorms[i];
           const lerp2 = (A, B, t) => [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t];
           const L = Math.hypot(loopPts[ni][0] - loopPts[i][0], loopPts[ni][1] - loopPts[i][1]) || 1;
+          const isCySpan = (fl !== 'B1') && (cyEdges === 'ALL' || (Array.isArray(cyEdges) && cyEdges.includes(i)));
 
-          pushDirectedWallSpan(o0, o1, i0, i1, yBottom, y0 - 0.004, nx, nz, null, true, false);
+          pushDirectedWallSpan(o0, o1, i0, i1, yBottom, y0 - 0.004, nx, nz, null, true, false, isCySpan);
 
           let curT = 0.0;
           const rawOps = edgeOpeningsList[i] || [];
           const sortedOps = (chkFen && fl !== 'B1') ? [...rawOps].sort((a, b) => a[0] - b[0]) : [];
           for (const [t0, t1, kind] of sortedOps) {
             if (t0 > curT + 0.002) {
-              pushDirectedWallSpan(lerp2(o0, o1, curT), lerp2(o0, o1, t0), lerp2(i0, i1, curT), lerp2(i0, i1, t0), y0, y1, nx, nz, topBrickCap, false, true);
+              pushDirectedWallSpan(lerp2(o0, o1, curT), lerp2(o0, o1, t0), lerp2(i0, i1, curT), lerp2(i0, i1, t0), y0, y1, nx, nz, topBrickCap, false, true, isCySpan);
             }
             const wOA = lerp2(o0, o1, t0), wOB = lerp2(o0, o1, t1);
             const wIA = lerp2(i0, i1, t0), wIB = lerp2(i0, i1, t1);
@@ -2375,12 +2364,10 @@ const App = {
               }
             };
 
-            const isCySpan = isCourtyardWallSpan(o0, o1);
-
             if (kind === 'courtyard_door') {
               const doorH = Math.min(2.30, effWallH);
               if (effWallH > doorH + 0.04) {
-                pushDirectedWallSpan(wOA, wOB, wIA, wIB, y0 + doorH, y1, nx, nz, topBrickCap, true, true);
+                pushDirectedWallSpan(wOA, wOB, wIA, wIB, y0 + doorH, y1, nx, nz, topBrickCap, true, true, isCySpan);
               }
               if (!chkHighlight) {
                 pushRecessedPrivacyBox(y0, y0 + doorH, !isCySpan);
@@ -2397,10 +2384,10 @@ const App = {
               const sillH = (kind === 'courtyard_glazing') ? 0.08 : Math.min(0.58, effWallH * 0.35);
               const winTop = Math.min(2.75, effWallH);
               if (sillH > 0.02) {
-                pushDirectedWallSpan(wOA, wOB, wIA, wIB, y0, y0 + sillH, nx, nz, surroundStoneCol, false, true);
+                pushDirectedWallSpan(wOA, wOB, wIA, wIB, y0, y0 + sillH, nx, nz, surroundStoneCol, false, true, isCySpan);
               }
               if (effWallH > winTop + 0.04) {
-                pushDirectedWallSpan(wOA, wOB, wIA, wIB, y0 + winTop, y1, nx, nz, topBrickCap, true, true);
+                pushDirectedWallSpan(wOA, wOB, wIA, wIB, y0 + winTop, y1, nx, nz, topBrickCap, true, true, isCySpan);
               }
               if (!chkHighlight && winTop > sillH + 0.12) {
                 pushRecessedPrivacyBox(y0 + sillH, y0 + winTop, !isCySpan);
@@ -2421,7 +2408,7 @@ const App = {
             curT = t1;
           }
           if (curT < 0.998) {
-            pushDirectedWallSpan(lerp2(o0, o1, curT), o1, lerp2(i0, i1, curT), i1, y0, y1, nx, nz, topBrickCap, false, curT > 0.002);
+            pushDirectedWallSpan(lerp2(o0, o1, curT), o1, lerp2(i0, i1, curT), i1, y0, y1, nx, nz, topBrickCap, false, curT > 0.002, isCySpan);
           }
           pushLine([o0[0], y1, o0[1]], [o1[0], y1, o1[1]], [0.46, 0.42, 0.38, 0.45]);
         }
@@ -2429,12 +2416,6 @@ const App = {
 
       // Helper: Build the 50cm Shared Party Wall between U11 and U10!
       // Consists of: 20cm U11 East Wall + 10cm Cavity (中空层) + 20cm U10 West Wall = 50cm total thickness!
-      // In the central courtyard/platform section (Z=-6.22..-16.68):
-      //   1. South Larger Floor-to-Ceiling Window (Z=-6.22..-10.22, 4000mm)
-      //   2. Middle Solid Pier (Z=-10.22..-12.02, 1800mm, behind the 2F pocket garden & 3F-tall tree)
-      //   3. North Smaller Floor-to-Ceiling Window (Z=-12.02..-14.52, 2500mm)
-      //   4. Solid Pier (Z=-14.52..-15.55, 1030mm)
-      //   5. North Connecting Doorway (Z=-15.55..-16.68, 1130mm walkthrough door connecting U11 & U10!)
       const push50cmPartyWallAssembly = () => {
         const xInU11 = (z) => 25.55 + (-z / 23.61) * 1.69;
         // Strictly keep B1 & 1F 100% solid, keep both South & North staircase walls 100% solid on all floors,
@@ -2462,15 +2443,32 @@ const App = {
           const u11Col = chkHighlight ? structHighlightCol : (isCyFacing ? cyStonePaintCol : intWhiteColor);
           const u10Col = chkHighlight ? structHighlightCol : (isCyFacing ? cyStonePaintCol : intWhiteColor);
           const pierEdgeCol = (isCyFacing && !this.stonePaintSeams) ? null : [0.82, 0.81, 0.79, 0.4];
-          pushPrism(leafU11, yB, yT, u11Col, pierEdgeCol, true, topStoneCap);
+          const pierCapCol = isCyFacing ? topStoneCap : [0.86, 0.84, 0.81, 1.0];
+          pushPrism(leafU11, yB, yT, u11Col, pierEdgeCol, true, pierCapCol);
           pushPrism(cavity10, yB, yT - 0.01, [0.42, 0.44, 0.48, 1.0], null, false, [0.35, 0.38, 0.42, 1.0]);
-          pushPrism(leafU10, yB, yT, u10Col, pierEdgeCol, true, topStoneCap);
+          pushPrism(leafU10, yB, yT, u10Col, pierEdgeCol, true, pierCapCol);
         };
 
-        const x0 = xInU11(0.02), xN = xInU11(-23.59);
-        pushPrism([[x0, 0.02], [x0 + 0.50, 0.02], [xN + 0.50, -23.59], [xN, -23.59]], yBottom, y0 - 0.004, [0.90, 0.87, 0.82, 3.0], null, false);
+        // Inset South start (-0.16m) inside U11 South brick wall and stop shared party wall at U10 North wall (-22.32m on 1F..3F)
+        // so zero white interior party wall ever pokes outside the South or North exterior brick facades!
+        const zPartySouth = -0.16;
+        const zPartyNorth = (fl === 'B1') ? -23.42 : -22.32;
+        const x0 = xInU11(zPartySouth), xN = xInU11(zPartyNorth);
+        pushPrism([[x0, zPartySouth], [x0 + 0.50, zPartySouth], [xN + 0.50, zPartyNorth], [xN, zPartyNorth]], yBottom, y0 - 0.004, [0.90, 0.87, 0.82, 3.0], null, false);
 
-        let curZ = 0.02;
+        // Exposed North-East exterior wall wing of U11 (Z = -22.32 .. -23.59, where U11 extends 1.11m further North than U10)
+        // Rendered with exterior kiln brick on the outer face and white plaster on the inner face!
+        if (fl !== 'B1') {
+          const zStepS = -22.32, zStepN = -23.59;
+          const xStepS = xInU11(zStepS), xStepN = xInU11(zStepN);
+          pushDirectedWallSpan(
+            [xStepS + 0.28, zStepS], [xStepN + 0.28, zStepN],
+            [xStepS, zStepS], [xStepN, zStepN],
+            yBottom, y1, 1, 0, topBrickCap, true, true, false
+          );
+        }
+
+        let curZ = zPartySouth;
         for (const [zStart, zEnd, labelMm, opKind] of infillZones) {
           if (curZ - zStart > 0.02) {
             pushPartyPier50cm(curZ, zStart, y0, y1);
@@ -2524,8 +2522,8 @@ const App = {
           }
           curZ = zEnd;
         }
-        if (curZ - (-23.59) > 0.02) {
-          pushPartyPier50cm(curZ, -23.59, y0, y1);
+        if (curZ - zPartyNorth > 0.02) {
+          pushPartyPier50cm(curZ, zPartyNorth, y0, y1);
         }
       };
 
@@ -2536,7 +2534,7 @@ const App = {
         // 2. U11 Exterior & Courtyard Walls (skipping Edge 1 on B1/1F and Edges 1 & 5 on 2F/3F because the 50cm Party Wall Assembly above handles the East shared boundary!)
         if (fl === 'B1') {
           const b1Loop = [[0.13, 0.04], [25.65, 0.04], [27.34, -23.59], [2.70, -18.34]];
-          pushMiteredWallLoop(b1Loop, [[], [], [], []], 0.28, [1]);
+          pushMiteredWallLoop(b1Loop, [[], [], [], []], 0.28, [1], []);
         } else if (fl === '1F') {
           const outer1F = [[0.14, 0.02], [25.65, 0.02], [27.34, -23.59], [2.70, -18.34]];
           const outerOps1F = [
@@ -2545,7 +2543,7 @@ const App = {
             [[0.215, 0.432, 'courtyard_door'], [0.536, 0.706, 'window']],
             []
           ];
-          pushMiteredWallLoop(outer1F, outerOps1F, 0.34, [1]);
+          pushMiteredWallLoop(outer1F, outerOps1F, 0.34, [1], []);
 
           const cyLoop1F = [[22.75, -5.50], [6.56, -5.50], [7.49, -13.88], [23.11, -17.02]];
           // Openings strictly placed inside architectural bays between B1-3F load-bearing columns/piers (zero hollowing of structural piers!)
@@ -2555,7 +2553,7 @@ const App = {
             [[0.175, 0.310, 'courtyard_glazing'], [0.685, 0.920, 'courtyard_door']],
             [[0.04, 0.14, 'courtyard_door']]
           ];
-          pushMiteredWallLoop(cyLoop1F, cyOps1F, 0.28);
+          pushMiteredWallLoop(cyLoop1F, cyOps1F, 0.28, [], 'ALL');
         } else if (fl === '2F') {
           const loop2F = [
             [0.14, 0.02], [25.65, 0.02], [26.04, -5.35], [6.30, -5.36],
@@ -2571,7 +2569,7 @@ const App = {
             [[0.336, 0.443, 'window'], [0.545, 0.695, 'window']],
             []
           ];
-          pushMiteredWallLoop(loop2F, ops2F, 0.32, [1, 5]);
+          pushMiteredWallLoop(loop2F, ops2F, 0.32, [1, 5], [2, 3, 4]);
         } else if (fl === '3F') {
           const loop3F = [
             [0.14, 0.02], [25.65, 0.02], [25.92, -3.96], [6.12, -3.97],
@@ -2587,7 +2585,7 @@ const App = {
             [[0.172, 0.357, 'window'], [0.651, 0.732, 'window']],
             [[0.423, 0.663, 'window']]
           ];
-          pushMiteredWallLoop(loop3F, ops3F, 0.32, [1, 5]);
+          pushMiteredWallLoop(loop3F, ops3F, 0.32, [1, 5], [2, 3, 4]);
         }
 
         // 3. U10 Exterior Shell & Central Courtyard Facades (1:1 CAD coordinates from U11U10二联层高和户间示意.pdf Pages 1-4!)
@@ -2596,7 +2594,7 @@ const App = {
             [26.05, 0.02], [25.90, 3.47], [49.54, 3.47], [49.54, -16.73],
             [33.91, -16.73], [33.91, -24.18], [27.56, -24.18]
           ];
-          pushMiteredWallLoop(u10OuterB1, [[], [], [], [], [], [], []], 0.26, [6]);
+          pushMiteredWallLoop(u10OuterB1, [[], [], [], [], [], [], []], 0.26, [6], []);
           // B1 North semi-basement colonnade outer frame & columns (X=33.91..49.54, Z=-22.43)
           for (const cx of [38.47, 43.37, 49.37]) {
             pushBox(cx, y0, -22.35, 0.45, 0.45, effWallH, 0, extBrickColor, [0.48, 0.44, 0.40, 0.5], false);
@@ -2637,7 +2635,7 @@ const App = {
             [[0.366, 0.481, 'window']],                      // 11: NW wing North wall — ONLY 1 small window (X=34.80..36.40)!
             []                                               // 12: Party wall (skipped)
           ];
-          pushMiteredWallLoop(u10Outer1F, u10Ops1F, 0.34, [12]);
+          pushMiteredWallLoop(u10Outer1F, u10Ops1F, 0.34, [12], []);
 
           // U10 1F True CAD Inner Courtyard Loop:
           const u10Cy1F = [[46.25, -2.18], [31.72, -2.18], [32.76, -16.78], [46.25, -16.78]];
@@ -2647,7 +2645,7 @@ const App = {
             [[0.16, 0.31, 'courtyard_glazing'], [0.36, 0.61, 'courtyard_glazing'], [0.66, 0.97, 'courtyard_door']],
             [[0.06, 0.16, 'courtyard_door']]
           ];
-          pushMiteredWallLoop(u10Cy1F, u10CyOps1F, 0.28);
+          pushMiteredWallLoop(u10Cy1F, u10CyOps1F, 0.28, [], 'ALL');
         } else if (fl === '2F') {
           // 2F Outer Shell: 100% Flat South Facade (Z=3.42) & Flat North Facade (Z=-22.48) — all window recesses handled purely within window openings!
           const u10Outer2F = [
@@ -2667,7 +2665,7 @@ const App = {
             [[0.304, 0.395, 'window'], [0.596, 0.697, 'window']], // 3: ONLY 2 windows on 2F North facade (X=40.80..42.80, X=34.20..36.40)
             []                                               // 4: Party wall (skipped)
           ];
-          pushMiteredWallLoop(u10Outer2F, u10Ops2F, 0.34, [4]);
+          pushMiteredWallLoop(u10Outer2F, u10Ops2F, 0.34, [4], []);
 
           // U10 2F True CAD Inner Courtyard Loop (East side X=46.25..49.45 is the open 2F East Garden Platform — NO dividing wall at X=46.25!):
           const u10Cy2F = [[49.45, -2.18], [31.72, -2.18], [32.76, -16.78], [49.45, -16.78]];
@@ -2677,7 +2675,7 @@ const App = {
             [[0.13, 0.30, 'courtyard_glazing'], [0.37, 0.45, 'courtyard_door'], [0.62, 0.78, 'courtyard_glazing'], [0.85, 0.93, 'courtyard_door']],
             []
           ];
-          pushMiteredWallLoop(u10Cy2F, u10CyOps2F, 0.28, [3]);
+          pushMiteredWallLoop(u10Cy2F, u10CyOps2F, 0.28, [3], 'ALL');
         } else if (fl === '3F') {
           // 3F Outer Shell: 100% Flush South Facade (25.81..49.45, Z=3.42), Full-Height Solid East Boundary Wall (X=49.45, Z=3.42..-22.48),
           // and Flush North Facade (49.45..27.56, Z=-22.48) — all windows have uniform flush reveal!
@@ -2698,7 +2696,7 @@ const App = {
             [[0.633, 0.715, 'window']],                      // 3: ONLY 1 window on 3F North facade (X=33.80..35.60)
             []                                               // 4: Party wall (skipped)
           ];
-          pushMiteredWallLoop(u10Outer3F, u10Ops3F, 0.34, [4]);
+          pushMiteredWallLoop(u10Outer3F, u10Ops3F, 0.34, [4], []);
 
           // U10 3F True CAD Inner Courtyard & Setback Terrace Loop (extending flush to East boundary wall X=49.45):
           const u10Cy3F = [[49.45, -0.78], [31.62, -0.78], [32.76, -16.78], [49.45, -16.78]];
@@ -2708,13 +2706,13 @@ const App = {
             [[0.16, 0.39, 'courtyard_glazing'], [0.45, 0.53, 'courtyard_door'], [0.62, 0.80, 'courtyard_glazing']],
             []
           ];
-          pushMiteredWallLoop(u10Cy3F, u10CyOps3F, 0.28, [3]);
+          pushMiteredWallLoop(u10Cy3F, u10CyOps3F, 0.28, [3], 'ALL');
         }
 
         // 4. U9 Exterior Shell & Central Courtyard Facades (Exact stepped Z = 6.72 .. -20.18 per U9 平面示意.pdf & U11U10 PDF P1 3300mm step!)
         if (fl === 'B1') {
           const u9OuterB1 = [[49.72, 6.72], [70.65, 6.72], [70.65, -22.38], [49.72, -22.38]];
-          pushMiteredWallLoop(u9OuterB1, [[], [], [], []], 0.28);
+          pushMiteredWallLoop(u9OuterB1, [[], [], [], []], 0.28, [], []);
           for (const cx of [58.50, 62.75, 67.00]) {
             pushBox(cx, y0, -20.18, 0.45, 0.45, effWallH, 0, extBrickColor, [0.48, 0.44, 0.40, 0.5], false);
           }
@@ -2750,7 +2748,7 @@ const App = {
             [[0.324, 0.435, 'window']],                      // 10: ONLY 1 small window on 1F North wall (X=57.35..58.85m)!
             []                                               // 11: Solid West party wall
           ];
-          pushMiteredWallLoop(u9Outer1F, u9Ops1F, 0.34);
+          pushMiteredWallLoop(u9Outer1F, u9Ops1F, 0.34, [], []);
 
           const u9Cy1F = [[67.45, 1.12], [55.32, 1.12], [55.32, -14.58], [67.45, -14.58]];
           const u9CyOps1F = [
@@ -2759,7 +2757,7 @@ const App = {
             [[0.15, 0.55, 'courtyard_glazing'], [0.66, 0.92, 'courtyard_door']],
             [[0.08, 0.20, 'courtyard_door']]
           ];
-          pushMiteredWallLoop(u9Cy1F, u9CyOps1F, 0.28);
+          pushMiteredWallLoop(u9Cy1F, u9CyOps1F, 0.28, [], 'ALL');
         } else if (fl === '2F') {
           // Strictly per U9 平面示意.pdf P3:
           // - 2F South wall (20930mm): ONLY 2 windows (2800mm bay at x=8.10..10.90m & 2150mm bay at x=12.25..14.40m); East 6530mm & West 8100mm are 100% solid brick!
@@ -2771,7 +2769,7 @@ const App = {
             [[0.259, 0.326, 'window'], [0.560, 0.656, 'window']], // 2: ONLY 2 windows on 2F North facade (X=63.83..65.23m, X=56.92..58.92m)
             []                                                   // 3: Solid West party wall
           ];
-          pushMiteredWallLoop(u9Outer2F, u9Ops2F, 0.34);
+          pushMiteredWallLoop(u9Outer2F, u9Ops2F, 0.34, [], []);
 
           const u9Cy2F = [[70.65, 1.12], [55.32, 1.12], [55.32, -14.58], [70.65, -14.58]];
           const u9CyOps2F = [
@@ -2780,7 +2778,7 @@ const App = {
             [[0.14, 0.36, 'courtyard_glazing'], [0.42, 0.62, 'courtyard_glazing'], [0.64, 0.72, 'courtyard_door'], [0.82, 0.92, 'courtyard_door']],
             []
           ];
-          pushMiteredWallLoop(u9Cy2F, u9CyOps2F, 0.28, [3]);
+          pushMiteredWallLoop(u9Cy2F, u9CyOps2F, 0.28, [3], 'ALL');
         } else if (fl === '3F') {
           // Strictly per U9 平面示意.pdf P4:
           // - 3F South wall (20930mm): ONLY 1 window in Walk-in Closet (2600mm bay at x=6.00..8.60m, X=55.97..58.07m); Bedroom 5000mm & Bath 4530mm are 100% solid brick!
@@ -2792,7 +2790,7 @@ const App = {
             [[0.632, 0.694, 'window']],                      // 2: ONLY 1 window on 3F North facade (X=56.12..57.42m)
             []                                               // 3: Full-height solid West party wall
           ];
-          pushMiteredWallLoop(u9Outer3F, u9Ops3F, 0.34);
+          pushMiteredWallLoop(u9Outer3F, u9Ops3F, 0.34, [], []);
 
           const u9Cy3F = [[70.65, 2.52], [55.32, 2.52], [55.32, -14.58], [70.65, -14.58]];
           const u9CyOps3F = [
@@ -2801,14 +2799,14 @@ const App = {
             [[0.18, 0.42, 'courtyard_glazing'], [0.52, 0.62, 'courtyard_door'], [0.70, 0.88, 'courtyard_glazing']],
             []
           ];
-          pushMiteredWallLoop(u9Cy3F, u9CyOps3F, 0.28, [3]);
+          pushMiteredWallLoop(u9Cy3F, u9CyOps3F, 0.28, [3], 'ALL');
         }
 
         // 5. U8 Exterior Shell & Central Courtyard Facades (Exact stepped Z = 9.67 .. -18.33 per U8 平面示意.pdf P2/P3 1850mm step & 12.00° angled East facade!)
         const xEU8_w = (z) => 89.870 + ((z + 18.33) / 28.00) * 5.952;
         if (fl === 'B1') {
           const u8OuterB1 = [[70.92, 9.67], [95.822, 9.67], [89.870, -18.33], [70.92, -18.33]];
-          pushMiteredWallLoop(u8OuterB1, [[], [], [], []], 0.28);
+          pushMiteredWallLoop(u8OuterB1, [[], [], [], []], 0.28, [], []);
         } else if (fl === '1F') {
           const u8Outer1F = [
             [70.92, 9.67],    // 0: SW corner
@@ -2841,7 +2839,7 @@ const App = {
             [[0.345, 0.460, 'window']],                      // 10: ONLY 1 small window on 1F North wall!
             []                                               // 11: Solid West party wall
           ];
-          pushMiteredWallLoop(u8Outer1F, u8Ops1F, 0.34);
+          pushMiteredWallLoop(u8Outer1F, u8Ops1F, 0.34, [], []);
 
           const u8Cy1F = [
             [xEU8_w(4.07) - 3.27, 4.07],
@@ -2855,7 +2853,7 @@ const App = {
             [[0.16, 0.54, 'courtyard_glazing'], [0.66, 0.90, 'courtyard_door']],
             [[0.08, 0.20, 'courtyard_door']]
           ];
-          pushMiteredWallLoop(u8Cy1F, u8CyOps1F, 0.28);
+          pushMiteredWallLoop(u8Cy1F, u8CyOps1F, 0.28, [], 'ALL');
         } else if (fl === '2F') {
           // Strictly per U8 平面示意.pdf P3:
           // - 2F South wall (24902mm): ONLY 2 windows (3200mm bay at x=8.00..11.20m & 2500mm bay at x=15.25..17.75m); West 8000mm & East 7152mm are 100% solid brick!
@@ -2867,7 +2865,7 @@ const App = {
             [[0.322, 0.424, 'window'], [0.557, 0.639, 'window']], // 2: ONLY 2 windows on 2F North facade (X=81.83..83.77m, X=77.77..79.32m)
             []                                                   // 3: Solid West party wall
           ];
-          pushMiteredWallLoop(u8Outer2F, u8Ops2F, 0.34);
+          pushMiteredWallLoop(u8Outer2F, u8Ops2F, 0.34, [], []);
 
           const u8Cy2F = [
             [xEU8_w(4.07), 4.07],
@@ -2881,7 +2879,7 @@ const App = {
             [[0.14, 0.36, 'courtyard_glazing'], [0.42, 0.60, 'courtyard_glazing'], [0.63, 0.72, 'courtyard_door'], [0.82, 0.92, 'courtyard_door']],
             []
           ];
-          pushMiteredWallLoop(u8Cy2F, u8CyOps2F, 0.28, [3]);
+          pushMiteredWallLoop(u8Cy2F, u8CyOps2F, 0.28, [3], 'ALL');
         } else if (fl === '3F') {
           // Strictly per U8 平面示意.pdf P4:
           // - 3F South wall (24902mm): ONLY 1 window (1500mm clear width at x=6.55..8.05m, X=77.47..78.97m); entire Bedroom & Bathroom South walls are 100% solid brick!
@@ -2893,7 +2891,7 @@ const App = {
             [],                                              // 2: 3F North outer wall has ZERO exterior windows per CAD P4!
             []                                               // 3: Solid West party wall
           ];
-          pushMiteredWallLoop(u8Outer3F, u8Ops3F, 0.34);
+          pushMiteredWallLoop(u8Outer3F, u8Ops3F, 0.34, [], []);
 
           const u8Cy3F = [
             [xEU8_w(5.47), 5.47],
@@ -2907,12 +2905,12 @@ const App = {
             [[0.18, 0.42, 'courtyard_glazing'], [0.52, 0.62, 'courtyard_door'], [0.70, 0.88, 'courtyard_glazing']],
             []
           ];
-          pushMiteredWallLoop(u8Cy3F, u8CyOps3F, 0.28, [3]);
+          pushMiteredWallLoop(u8Cy3F, u8CyOps3F, 0.28, [3], 'ALL');
         }
       }
 
       // ======================================================================
-      // 3B. Interior Load-Bearing Structural Walls & Partition Walls (BOTH U11 & U10!)
+      // 3B. Interior Load-Bearing Structural Walls & Partition Walls (U11, U10, U9 & U8)
       // ======================================================================
       const u10FloorData = this.data.u10?.floors?.[fl];
       const u9FloorData  = this.data.u9?.floors?.[fl];
@@ -2927,14 +2925,14 @@ const App = {
           const zn = -18.34 + ((p[0] - 2.70) / 24.64) * (-5.25);
           const xe = 25.55 + (-p[1] / 23.61) * 1.69;
           const zCyN = -13.88 + ((p[0] - 7.49) / 19.47) * (-4.14);
-          maxDw = Math.max(maxDw, Math.abs(p[0] - xw));
-          maxDn = Math.max(maxDn, Math.abs(p[1] - zn));
-          maxDs = Math.max(maxDs, Math.abs(p[1] - 0.02));
-          maxDe = Math.max(maxDe, Math.abs(p[0] - xe));
+          maxDw = Math.max(maxDw, p[0] - xw);
+          maxDn = Math.max(maxDn, p[1] - zn);
+          maxDs = Math.max(maxDs, 0.02 - p[1]);
+          maxDe = Math.max(maxDe, xe - p[0]);
           maxDcyN = Math.max(maxDcyN, Math.abs(p[1] - zCyN));
         }
-        // 1. Skip ONLY walls that lie along U11's 4 outer perimeter walls (or recessed window outer strips on S/N facades)
-        if (maxDw < 0.55 || maxDn < 0.62 || maxDs < 0.65 || maxDe < 0.52) return true;
+        // 1. Skip walls that lie along U11's 4 outer perimeter walls (or recessed window outer strips on S/N facades)
+        if (maxDw < 0.52 || maxDn < 0.52 || maxDs < 0.48 || maxDe < 0.28) return true;
         if (fl !== 'B1' && minZ < -18.70 && maxZ > -21.95 && minX >= 8.30 && maxX <= 20.10) return true;
         if (fl === 'B1') return false;
         // 2. Skip walls that duplicate the Courtyard perimeter loops already drawn by pushMiteredWallLoop
@@ -2944,6 +2942,16 @@ const App = {
         if (maxDcyN < 0.55 && minX >= 7.20 && maxX <= 24.50) return true;
         return false;
       };
+      // Clamp any U11 interior wall vertex strictly inside the inner face of the West, East, North & South exterior brick walls
+      // so transverse interior walls never poke through or Z-fight with the angled West/East/North exterior brick facades!
+      const clampU11InteriorPolyToShell = (poly) => poly.map(([x, z]) => {
+        const cz = Math.min(-0.16, z);
+        const xwIn = 0.14 + (-cz / 18.36) * 2.56 + 0.19;
+        const xeIn = 25.55 + (-cz / 23.61) * 1.69 - 0.03;
+        const cx = Math.max(xwIn, Math.min(xeIn, x));
+        const znIn = -18.34 + ((cx - 2.70) / 24.64) * (-5.25) + 0.19;
+        return [cx, Math.max(znIn, cz)];
+      });
       const getU11WallYRange = (poly) => {
         if (fl !== '1F') return [y0, y1];
         let cx = 0, cz = 0;
@@ -2958,12 +2966,13 @@ const App = {
       };
       if (chkStruct) {
         for (const w of fd.structural_walls) {
-          if (isU11OuterShellDuplicate(w.poly)) continue;
-          const [wy0, wy1] = getU11WallYRange(w.poly);
+          if (w.type === 'exterior' || isU11OuterShellDuplicate(w.poly)) continue;
+          const clampedPoly = clampU11InteriorPolyToShell(w.poly);
+          const [wy0, wy1] = getU11WallYRange(clampedPoly);
           if (chkHighlight) {
-            pushPrism(w.poly, wy0, wy1, structHighlightCol, highlightEdgeCol, true);
+            pushPrism(clampedPoly, wy0, wy1, structHighlightCol, highlightEdgeCol, true);
           } else {
-            pushPrism(w.poly, wy0, wy1, intWhiteColor, [0.75, 0.73, 0.70, 0.45], true, [0.86, 0.84, 0.81, 1.0]);
+            pushPrism(clampedPoly, wy0, wy1, intWhiteColor, [0.75, 0.73, 0.70, 0.45], true, [0.86, 0.84, 0.81, 1.0]);
           }
         }
         for (const extraFlData of [u10FloorData, u9FloorData, u8FloorData]) {
@@ -2977,23 +2986,26 @@ const App = {
             }
           }
         }
-        // Solid Stairwell Enclosure Walls for U11, U10, U9 & U8 (ensuring zero hollowed-out staircase sides on any floor!)
+        // Solid Stairwell Enclosure Walls for U11, U10, U9 & U8 (inset inside outer brick shells so zero white wall pokes outside!)
         const stairEnclosureWalls = [
           // U11 SE Secondary Staircase (second_stair) North enclosure wall separating stairwell from corridor
-          [[21.50, -3.42], [25.88, -3.42], [25.88, -3.62], [21.50, -3.62]],
-          // U10 SW Staircase East enclosure wall (X=28.62..28.84, Z=3.42..-1.55)
-          [[28.62, 3.42], [28.84, 3.42], [28.84, -1.55], [28.62, -1.55]],
-          // U10 NW Staircase East enclosure wall (X=31.46..31.68, Z=-18.35..-22.48)
-          [[31.46, -18.35], [31.68, -18.35], [31.68, -22.48], [31.46, -22.48]],
-          // U9 SW Staircase East enclosure wall (X=53.85..54.05, Z=6.72..2.52)
-          [[53.85, 6.72], [54.05, 6.72], [54.05, 2.52], [53.85, 2.52]],
-          // U9 NW Staircase East enclosure wall (X=53.85..54.05, Z=-14.58..-20.18)
-          [[53.85, -14.58], [54.05, -14.58], [54.05, -20.18], [53.85, -20.18]],
-          // U8 SW Staircase East enclosure wall (X=75.05..75.25, Z=9.67..5.47)
-          [[75.05, 9.67], [75.25, 9.67], [75.25, 5.47], [75.05, 5.47]],
-          // U8 NW Staircase East enclosure wall (X=75.05..75.25, Z=-12.73..-18.33)
-          [[75.05, -12.73], [75.25, -12.73], [75.25, -18.33], [75.05, -18.33]]
+          [[21.50, -3.42], [25.52, -3.42], [25.52, -3.62], [21.50, -3.62]],
+          // U10 SW Staircase East enclosure wall (X=28.62..28.84, Z=3.24..-1.55)
+          [[28.62, 3.24], [28.84, 3.24], [28.84, -1.55], [28.62, -1.55]],
+          // U10 NW Staircase East enclosure wall (X=31.46..31.68, Z=-18.35..-22.30)
+          [[31.46, -18.35], [31.68, -18.35], [31.68, -22.30], [31.46, -22.30]],
+          // U9 SW Staircase East enclosure wall (X=53.85..54.05, Z=6.54..2.52)
+          [[53.85, 6.54], [54.05, 6.54], [54.05, 2.52], [53.85, 2.52]],
+          // U9 NW Staircase East enclosure wall (X=53.85..54.05, Z=-14.58..-20.00)
+          [[53.85, -14.58], [54.05, -14.58], [54.05, -20.00], [53.85, -20.00]],
+          // U8 SW Staircase East enclosure wall (X=75.05..75.25, Z=9.48..5.47)
+          [[75.05, 9.48], [75.25, 9.48], [75.25, 5.47], [75.05, 5.47]],
+          // U8 NW Staircase East enclosure wall (X=75.05..75.25, Z=-12.73..-18.14)
+          [[75.05, -12.73], [75.25, -12.73], [75.25, -18.14], [75.05, -18.14]]
         ];
+        if (fl === '3F') {
+          stairEnclosureWalls.push([[20.56, -4.20], [25.52, -4.20], [25.52, -4.00], [20.56, -4.00]]);
+        }
         for (const swPoly of stairEnclosureWalls) {
           if (chkHighlight) {
             pushPrism(swPoly, y0, y1, structHighlightCol, highlightEdgeCol, true);
@@ -3006,8 +3018,9 @@ const App = {
       if (chkPart) {
         for (const w of fd.partition_walls) {
           if (isU11OuterShellDuplicate(w.poly)) continue;
-          const [wy0, wy1] = getU11WallYRange(w.poly);
-          pushPrism(w.poly, wy0, wy1, intWhiteColor, [0.78, 0.76, 0.73, 0.45], true);
+          const clampedPoly = clampU11InteriorPolyToShell(w.poly);
+          const [wy0, wy1] = getU11WallYRange(clampedPoly);
+          pushPrism(clampedPoly, wy0, wy1, intWhiteColor, [0.78, 0.76, 0.73, 0.45], true);
         }
         for (const extraFlData of [u10FloorData, u9FloorData, u8FloorData]) {
           if (extraFlData?.partition_walls) {
