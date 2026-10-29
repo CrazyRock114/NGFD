@@ -1158,6 +1158,10 @@ const App = {
     ];
 
     this.tianyuanVillaLabels = [];
+    const privacyHotspotWindows = [];
+    const tianyuanFootprints2D = [];
+    const dynamicExteriorWindows = [];
+    const exteriorWallSegments2D = [];
 
     if (chkSlabs && this.floorFilter === 'ALL') {
       const siteGrassCol = [0.32, 0.52, 0.34, 4.0];
@@ -1322,8 +1326,6 @@ const App = {
         }
       };
 
-      const privacyHotspotWindows = [];
-
       // Builder: Authentic 2.5~3F Detached Villa of 剑河路888号《田园别墅》
       // Sitting North-South (rotDeg = -42°), with both North (-lz) & East (+lx) facades facing across the river towards U11 & U10!
       const pushTianyuanDetachedVilla = (code, cx, cz, w=13.0, d=11.0, rotDeg=-42, isFrontRow=true, roleDesc='') => {
@@ -1342,6 +1344,7 @@ const App = {
 
         // 1. Main 1F & 2F Villa Footprint
         const mainPoly = [toW(-hw, -hd), toW(hw, -hd), toW(hw, hd), toW(-hw, hd)];
+        tianyuanFootprints2D.push({ code, poly: mainPoly });
         pushPrism(mainPoly, 0.0, 2.95, stoneCol, [0.52, 0.49, 0.44, 0.6], true);
         pushPrism(mainPoly, 2.95, h2F, stuccoCol, [0.58, 0.55, 0.50, 0.55], true, eaveCol);
 
@@ -1361,12 +1364,12 @@ const App = {
         // 4. Cross-Hipped Terracotta Roof (total ridge height ≈ 10.35m)
         pushVillaCrossHipRoof(toW, hw*0.82, hd*0.82, h3F, 1.95, roofCol, eaveCol, true);
 
-        // 5. Authentic Detached Villa Windows on BOTH North Facade (-lz) AND East Facade (+lx) facing U11/U10!
+        // 5. Authentic Detached Villa Windows on BOTH North Facade (-lz) AND East Facade (+lx) facing U11~U8!
         for (let flIdx = 0; flIdx < 3; flIdx++) {
           const fy = flIdx * storeyH;
           const isUpper = (flIdx >= 1); // 2F & 3F windows have direct sightlines over riverbank hedges
 
-          // --- A. NORTH FACADE (-lz, facing North-Northeast towards U11/U10) ---
+          // --- A. NORTH FACADE (-lz, facing North-Northeast towards U11~U8) ---
           // A1. North-West Stairwell / Bath Window (🔵/🟠)
           if (flIdx < 2) {
             pushVillaWindow(toW, 'N', -hw*0.78, -hw*0.32, -hd, fy + 1.30, fy + 2.25, flIdx === 0 ? 'low' : 'med');
@@ -1378,12 +1381,13 @@ const App = {
             const pNWc = toW(hw*0.30, -hd - 0.82);
             privacyHotspotWindows.push({
               x: pNWc[0], y: fy + 1.55, z: pNWc[1],
+              nx: sin, nz: -cos,
               fl: flIdx + 1, code, face: '北立面', isFrontRow,
               tag: `${code} ${flIdx+1}F北卧/书房窗`
             });
           }
 
-          // --- B. EAST FACADE (+lx, facing East-Northeast towards U11/U10!) ---
+          // --- B. EAST FACADE (+lx, facing East-Northeast towards U11~U8!) ---
           // Because detached villas have 4-sided fenestration and sit at -42°, the East Facade faces directly across the river too!
           // B1. East Protruding Bay Bedroom / Living Window (🔴 核心东向常驻敏感窗: 宽 1.60m × 高 1.45m)
           const eWinSens = (isFrontRow && isUpper) ? 'high' : 'med';
@@ -1392,6 +1396,7 @@ const App = {
             const pEWc = toW(hw + 0.68, -hd*0.11);
             privacyHotspotWindows.push({
               x: pEWc[0], y: fy + 1.55, z: pEWc[1],
+              nx: cos, nz: sin,
               fl: flIdx + 1, code, face: '东立面', isFrontRow,
               tag: `${code} ${flIdx+1}F东主卧/套房窗`
             });
@@ -1423,7 +1428,7 @@ const App = {
       pushTianyuanDetachedVilla('33幢',  22.23, 30.72, 13.2, 11.2, -42, true,  '正对U11东段与U10西段(23.7m)');
       pushTianyuanDetachedVilla('34幢',  45.03, 32.94, 13.2, 11.2, -42, true,  '正对U10南向核心区(23.9m)');
       pushTianyuanDetachedVilla('35幢',  63.95, 36.02, 12.8, 11.0, -42, true,  '斜对U10东南侧与9号楼');
-      pushTianyuanDetachedVilla('36幢',  75.09, 40.83, 12.8, 11.0, -42, false, '正对9号/8号楼');
+      pushTianyuanDetachedVilla('36幢',  75.09, 40.83, 12.8, 11.0, -42, true,  '正对9号/8号楼');
       pushTianyuanDetachedVilla('44幢', 127.78, 53.40, 12.8, 11.0, -42, false, '东南角近东门');
 
       // 2) Second & Third Rows of 《田园别墅》(SW of Row 1, visible in satellite photo; 41幢 & 40幢 align with gaps between 32/33/34幢!):
@@ -1434,7 +1439,7 @@ const App = {
       pushTianyuanDetachedVilla('42幢',     -0.63, 65.73, 13.0, 11.0, -42, false, '三排中区');
       pushTianyuanDetachedVilla('92幢',    -14.50, 76.50, 12.6, 10.8, -42, false, '四排西区');
       pushTianyuanDetachedVilla('40幢',     46.53, 47.98, 13.0, 11.0, -42, true,  '透过33/34幢缝隙斜视U10');
-      pushTianyuanDetachedVilla('37幢',     53.44, 58.58, 13.0, 11.0, -42, false, '三排东区');
+      pushTianyuanDetachedVilla('37幢',     53.44, 58.58, 13.0, 13.0, -42, false, '三排东区');
 
       // 3) South Horizontal Rows in Satellite Photo (82号, 80号, 78号 & 74号, 72号, 70号):
       pushTianyuanDetachedVilla('82号',  57.48, 73.87, 13.4, 10.8, -42, false, '南排');
@@ -1443,59 +1448,7 @@ const App = {
       pushTianyuanDetachedVilla('74号',  67.93, 88.54, 13.4, 10.8, -42, false, '南二排');
       pushTianyuanDetachedVilla('72号',  87.88, 76.83, 13.4, 10.8, -42, false, '南二排');
       pushTianyuanDetachedVilla('70号', 106.48, 66.23, 13.4, 10.8, -42, false, '南二排');
-
-      // 1D-bis. 3D Privacy Sightline Rays & Courtyard Parapet Cut-Off Envelope (👁️ 田园别墅 31~35幢 & 41/40幢 → U11/U10 隐私视线束)
-      if (privacyActive && privacyHotspotWindows.length > 0) {
-        const u11U10Targets = [
-          // U11 South Exterior Windows (Z = 0.02m)
-          { x:  3.20, y: 1.65, z: 0.02, fl: 1, col: [0.98, 0.68, 0.18, 0.78] }, // U11 1F 主起居室西窗 (受河岸乔木与绿篱过滤)
-          { x: 13.80, y: 1.65, z: 0.02, fl: 1, col: [0.98, 0.68, 0.18, 0.78] }, // U11 1F 餐厅南窗
-          { x:  4.20, y: 5.15, z: 0.02, fl: 2, col: [0.98, 0.24, 0.20, 0.92] }, // U11 2F 西南客房1南窗 (正对32幢2F北卧窗 22.4m & 31幢2F东卧窗!)
-          { x: 13.80, y: 5.15, z: 0.02, fl: 2, col: [0.98, 0.24, 0.20, 0.92] }, // U11 2F 家庭起居室南窗 (正对32幢2F东卧窗 22.9m!)
-          { x: 21.50, y: 5.15, z: 0.02, fl: 2, col: [0.98, 0.24, 0.20, 0.92] }, // U11 2F 长辈房南窗 (正对33幢2F北卧窗 25.3m!)
-          { x:  8.50, y: 8.65, z: 0.02, fl: 3, col: [0.98, 0.16, 0.16, 0.96] }, // U11 3F 子女房1南窗 (正对32幢3F北/东窗 22.7m!)
-          { x: 18.50, y: 8.65, z: 0.02, fl: 3, col: [0.98, 0.16, 0.16, 0.96] }, // U11 3F 南露台与子女房2 (正对33幢3F北窗 24.2m & 41幢缝隙视线!)
-          // U10 South Exterior Windows (Z = 3.42m, strictly at real CAD window centers!)
-          { x: 35.25, y: 5.15, z: 3.42, fl: 2, col: [0.98, 0.24, 0.20, 0.92] }, // U10 2F 南向西窗 (X=34.00..36.50)
-          { x: 40.70, y: 5.15, z: 3.42, fl: 2, col: [0.98, 0.24, 0.20, 0.92] }, // U10 2F 南向东窗 (X=39.60..41.80)
-          { x: 33.15, y: 8.65, z: 3.42, fl: 3, col: [0.98, 0.16, 0.16, 0.96] }, // U10 3F 南向唯一衣帽间窗 (X=32.00..34.30)
-          // U9 & U8 South Exterior Windows (Z = 6.72m & Z = 9.67m, strictly at real CAD window centers!)
-          { x: 59.22, y: 5.15, z: 6.72, fl: 2, col: [0.98, 0.24, 0.20, 0.92] }, // U9 2F 祖父母起居室南窗 (X=58.07..60.37)
-          { x: 57.02, y: 8.65, z: 6.72, fl: 3, col: [0.98, 0.16, 0.16, 0.96] }, // U9 3F 南向唯一衣帽间窗 (X=55.97..58.07)
-          { x: 80.52, y: 5.15, z: 9.67, fl: 2, col: [0.98, 0.24, 0.20, 0.92] }, // U8 2F 南向西窗 (X=79.17..81.87)
-          { x: 78.22, y: 8.65, z: 9.67, fl: 3, col: [0.98, 0.16, 0.16, 0.96] }  // U8 3F 南向唯一衣帽间窗 (X=77.47..78.97)
-        ];
-
-        for (const tgt of u11U10Targets) {
-          // Connect the 2 closest front-row villa windows at matching floor height
-          const candidates = privacyHotspotWindows
-            .filter(w => w.isFrontRow && Math.abs(w.fl - Math.max(2, tgt.fl)) <= 0)
-            .map(w => ({ w, dist: Math.hypot(w.x - tgt.x, w.z - tgt.z) }))
-            .sort((a, b) => a.dist - b.dist)
-            .slice(0, 2);
-          for (const { w } of candidates) {
-            pushLine([w.x, w.y, w.z], [tgt.x, tgt.y, tgt.z], tgt.col);
-          }
-        }
-
-        // Second-Row Gap Sightlines (透过 32/33幢 缝隙的 41幢视线，以及透过 33/34幢 缝隙的 40幢视线):
-        for (const w of privacyHotspotWindows.filter(item => (item.code === '41幢' || item.code === '40幢') && item.fl === 3 && item.face === '北立面')) {
-          const tx = (w.code === '41幢') ? 14.5 : 36.5;
-          const tz = (w.code === '41幢') ? 0.02 : 3.55;
-          pushLine([w.x, w.y, w.z], [tx, 8.65, tz], [0.95, 0.52, 0.16, 0.80]);
-        }
-
-        // Green Parapet Cut-Off Rays (证明田园别墅最高 3F 视点 y=7.45m 远低于 U11/U10 南翼 y=10.65m 屋顶女儿墙，视线以 +6.8°~+7.8° 仰角射向天空，内院 100% 零曝光!)
-        for (const [wx, wy, wz, px, pz, cyNorthZ] of [
-          [ 10.0, 7.45, 22.63, 12.5, -4.15, -13.95], // 32幢 3F窗 (y=7.45m) -> U11 南翼女儿墙顶 (y=10.65m) -> 射向内院上空 y=11.82m!
-          [ 42.8, 7.45, 27.45, 38.0, -12.22, -18.14] // 34幢 3F窗 (y=7.45m) -> U10 南翼女儿墙顶 (y=10.65m) -> 射向内院上空 y=11.13m!
-        ]) {
-          const slope = (10.65 - wy) / (wz - pz); // Positive upward slope!
-          const yHitSky = 10.65 + slope * (pz - cyNorthZ);
-          pushLine([wx, wy, wz], [px, 10.65, pz], [0.22, 0.88, 0.52, 0.88]);
-          pushLine([px, 10.65, pz], [px, yHitSky, cyNorthZ], [0.16, 0.95, 0.48, 0.96]);
-        }
-      }
+      // Note: 3D Privacy Sightline Rays are now generated dynamically after Section 3A (once all actual exterior windows of U11~U8 are constructed)!
 
       // 1E. Neighboring Villas (Unit 9, 8, 7, 6, 12, Gate, 1, 2, 3, 5) — Note: Unit 10 is now modeled in full 4-story interior detail below!
       const pushNeighborVilla = (poly, h=10.25, hasCourtyard=true) => {
@@ -1569,9 +1522,10 @@ const App = {
         // U11 1F Courtyard (Dark charcoal-slate narrow brick pavers per Photos 3, 6, 9)
         pushPrism(cyPoly, -0.22, -0.02, [0.27, 0.29, 0.30, 9.0], [0.20, 0.22, 0.23, 0.7], true);
         // Photo 3 & Photo 9: Tall multi-stem Sycamore/Plane trees (法国梧桐) rising from 1F courtyard through 2F/3F + trailing green vines on 2F gallery edge
+        // (Removed the oversized SW tree at [12.4, -7.8] in U11 courtyard that clipped into the outer gallery walkway)
         const y2Cy = this.data.floors['2F'].elevation;
         const y3Cy = this.data.floors['3F'].elevation;
-        for (const [stx, stz, hTop] of [[19.6, -12.6, y3Cy + 1.8], [12.4, -7.8, y3Cy + 1.4], [36.8, -11.8, y3Cy + 1.6], [59.2, -9.2, y3Cy + 1.6], [81.2, -6.8, y3Cy + 1.6]]) {
+        for (const [stx, stz, hTop] of [[19.6, -12.6, y3Cy + 1.8], [36.8, -11.8, y3Cy + 1.6], [59.2, -9.2, y3Cy + 1.6], [81.2, -6.8, y3Cy + 1.6]]) {
           pushCylinder(stx, 0.0, hTop, stz, 0.18, 0.07, 9, [0.44, 0.41, 0.36, 1.0], null);
           pushCylinder(stx - 0.18, 2.2, hTop + 0.3, stz + 0.15, 0.10, 0.045, 8, [0.48, 0.45, 0.39, 1.0], null);
           pushCylinder(stx + 0.10, y2Cy + 0.8, y2Cy + 2.8, stz - 0.10, 1.35, 0.95, 10, [0.33, 0.52, 0.28, 4.0], null);
@@ -1600,7 +1554,6 @@ const App = {
         const planterNorth = [[15.8, -11.2], [16.0, -13.4], [18.4, -14.0], [18.4, -13.0], [17.0, -12.6], [16.4, -11.3]];
         pushPrism(planterWest, 0.02, 0.44, [0.90, 0.88, 0.83, 6.0], [0.65,0.62,0.58,0.6], true);
         pushPrism(planterNorth, 0.02, 0.44, [0.90, 0.88, 0.83, 6.0], [0.65,0.62,0.58,0.6], true);
-        pushTree(9.6, 0.02, -9.5, 0.62, 'maple');
         pushTree(17.6, 0.02, -13.1, 0.65, 'maple');
         pushShrubCluster(9.6, 0.02, -11.8, 0.62);
         pushShrubCluster(14.2, 0.02, -12.8, 0.65);
@@ -2323,6 +2276,36 @@ const App = {
 
           let curT = 0.0;
           const rawOps = edgeOpeningsList[i] || [];
+          const flNum = (fl === '1F') ? 1 : (fl === '2F') ? 2 : (fl === '3F') ? 3 : 0;
+          // Always record exterior window/door openings and solid wall segments from rawOps so privacy sightline rays
+          // dynamically stay 100% synchronized with every window position & wall span!
+          if (!isCySpan && flNum > 0) {
+            let trackT = 0.0;
+            const sortedRaw = [...rawOps].sort((a, b) => a[0] - b[0]);
+            for (const [rt0, rt1, rKind] of sortedRaw) {
+              if (rt0 > trackT + 0.002) {
+                const sA = lerp2(o0, o1, trackT), sB = lerp2(o0, o1, rt0);
+                exteriorWallSegments2D.push({ fl: flNum, x1: sA[0], z1: sA[1], x2: sB[0], z2: sB[1] });
+              }
+              const rwOA = lerp2(o0, o1, rt0), rwOB = lerp2(o0, o1, rt1);
+              const openBot = (rKind === 'courtyard_door') ? y0 : (y0 + Math.min(0.58, fd.height * 0.35));
+              const openTop = (rKind === 'courtyard_door') ? (y0 + Math.min(2.30, fd.height)) : (y0 + Math.min(2.75, fd.height));
+              dynamicExteriorWindows.push({
+                x: 0.5 * (rwOA[0] + rwOB[0]),
+                y: 0.5 * (openBot + openTop),
+                z: 0.5 * (rwOA[1] + rwOB[1]),
+                nx, nz,
+                fl: flNum, flKey: fl, kind: rKind,
+                winLen: (rt1 - rt0) * L
+              });
+              trackT = rt1;
+            }
+            if (trackT < 0.998) {
+              const sA = lerp2(o0, o1, trackT), sB = o1;
+              exteriorWallSegments2D.push({ fl: flNum, x1: sA[0], z1: sA[1], x2: sB[0], z2: sB[1] });
+            }
+          }
+
           const sortedOps = (chkFen && fl !== 'B1') ? [...rawOps].sort((a, b) => a[0] - b[0]) : [];
           for (const [t0, t1, kind] of sortedOps) {
             if (t0 > curT + 0.002) {
@@ -3154,6 +3137,103 @@ const App = {
               pushLine([seg[0][0], yCad, seg[0][1]], [seg[1][0], yCad, seg[1][1]], [0.25, 0.52, 0.68, 0.55]);
             }
           }
+        }
+      }
+    }
+
+    // ========================================================================
+    // 3C. Dynamic Window-Driven 3D Privacy Sightline & 2D Occlusion Raycast Engine
+    // Automatically syncs with all window openings in U11, U10, U9 & U8 (dynamicExteriorWindows)
+    // and tests every ray against solid exterior wall spans (exteriorWallSegments2D) & opposite-bank villa footprints!
+    // ========================================================================
+    if (this.showPrivacyRays && privacyHotspotWindows.length > 0 && dynamicExteriorWindows.length > 0) {
+      const segsIntersect2D = (ax, az, bx, bz, cx, cz, dx, dz) => {
+        const ccw = (p1x, p1z, p2x, p2z, p3x, p3z) => (p3z - p1z) * (p2x - p1x) > (p2z - p1z) * (p3x - p1x);
+        return (ccw(ax, az, cx, cz, dx, dz) !== ccw(bx, bz, cx, cz, dx, dz)) &&
+               (ccw(ax, az, bx, bz, cx, cz) !== ccw(ax, az, bx, bz, dx, dz));
+      };
+
+      const isSightlineOccluded = (tgt, w) => {
+        // Start slightly outside the window glazing face (10cm outward along window normal) so it doesn't self-intersect
+        const ax = tgt.x + tgt.nx * 0.10, az = tgt.z + tgt.nz * 0.10;
+        const bx = w.x + (w.nx || 0) * 0.10, bz = w.z + (w.nz || 0) * 0.10;
+        // 1. Check against all solid exterior wall segments on the target window's floor
+        for (const seg of exteriorWallSegments2D) {
+          if (seg.fl !== tgt.fl) continue;
+          if (segsIntersect2D(ax, az, bx, bz, seg.x1, seg.z1, seg.x2, seg.z2)) return true;
+        }
+        // 2. Check against opposite-bank Tianyuan Villa building footprints (excluding the source villa itself)
+        for (const vf of tianyuanFootprints2D) {
+          if (vf.code === w.code) continue;
+          const poly = vf.poly;
+          for (let i = 0; i < poly.length; i++) {
+            const p1 = poly[i], p2 = poly[(i + 1) % poly.length];
+            if (segsIntersect2D(ax, az, bx, bz, p1[0], p1[1], p2[0], p2[1])) return true;
+          }
+        }
+        return false;
+      };
+
+      // 1. Front-Row Direct Window-to-Window Sightlines (31幢 ~ 36幢 -> actual South & West windows of U11, U10, U9 & U8)
+      const riverFacingWindows = dynamicExteriorWindows.filter(win => win.nz > 0.35 || win.nx < -0.35);
+      for (const tgt of riverFacingWindows) {
+        const rayCol = (tgt.fl === 1)
+          ? [0.98, 0.68, 0.18, 0.78] // 1F: Amber/Orange (filtered by riverbank trees & clipped hedges)
+          : (tgt.fl === 2)
+          ? [0.98, 0.24, 0.20, 0.92] // 2F: High-sensitivity Red-Orange
+          : [0.98, 0.16, 0.16, 0.96]; // 3F: Critical-sensitivity Crimson Red
+
+        const candidates = privacyHotspotWindows
+          .filter(w => {
+            if (!w.isFrontRow || w.code === '41幢' || w.code === '40幢') return false;
+            if (w.fl !== Math.max(2, tgt.fl)) return false;
+            const dx = w.x - tgt.x, dz = w.z - tgt.z;
+            const dist = Math.hypot(dx, dz) || 1;
+            const ux = dx / dist, uz = dz / dist;
+            // Ensure ray exits forward out of the U11~U8 window face AND forward out of the Tianyuan Villa window face
+            const dotTarget = ux * tgt.nx + uz * tgt.nz;
+            const dotSource = (-ux) * (w.nx || 0) + (-uz) * (w.nz || -1);
+            if (dotTarget < 0.20 || dotSource < 0.45) return false;
+            return !isSightlineOccluded(tgt, w);
+          })
+          .map(w => ({ w, dist: Math.hypot(w.x - tgt.x, w.z - tgt.z) }))
+          .sort((a, b) => a.dist - b.dist)
+          .slice(0, 2);
+
+        for (const { w } of candidates) {
+          pushLine([w.x, w.y, w.z], [tgt.x, tgt.y, tgt.z], rayCol);
+        }
+      }
+
+      // 2. Second-Row Gap Sightlines (41幢 through 32/33幢 gap & 40幢 through 33/34幢 gap -> closest unoccluded 3F South window)
+      const south3FWindows = riverFacingWindows.filter(win => win.fl === 3 && win.nz > 0.35);
+      for (const w of privacyHotspotWindows.filter(item => (item.code === '41幢' || item.code === '40幢') && item.fl === 3 && item.face === '北立面')) {
+        const unoccluded3F = south3FWindows
+          .filter(tgt => !isSightlineOccluded(tgt, w))
+          .map(tgt => ({ tgt, dist: Math.hypot(w.x - tgt.x, w.z - tgt.z) }))
+          .sort((a, b) => a.dist - b.dist);
+        if (unoccluded3F.length > 0) {
+          const { tgt } = unoccluded3F[0];
+          pushLine([w.x, w.y, w.z], [tgt.x, tgt.y, tgt.z], [0.95, 0.52, 0.16, 0.85]);
+        }
+      }
+
+      // 3. Dynamic Green Parapet Cut-Off Rays (屋顶女儿墙视线遮挡包络线: proving 3F opposite windows shoot into the sky above central courtyards)
+      const fl3 = this.data.floors['3F'];
+      const yParapet = fl3.elevation + fl3.height + 0.35;
+      const parapetChecks = [
+        { code: '32幢', px: 13.5, pz: -3.96, cyNorthZ: -13.88 },
+        { code: '34幢', px: 38.5, pz: -0.78, cyNorthZ: -16.78 },
+        { code: '35幢', px: 61.5, pz:  2.52, cyNorthZ: -14.58 },
+        { code: '36幢', px: 82.0, pz:  5.47, cyNorthZ: -12.73 }
+      ];
+      for (const pc of parapetChecks) {
+        const srcWin = privacyHotspotWindows.find(w => w.code === pc.code && w.fl === 3 && w.face === '北立面');
+        if (srcWin && yParapet > srcWin.y) {
+          const slope = (yParapet - srcWin.y) / (srcWin.z - pc.pz);
+          const yHitSky = yParapet + slope * (pc.pz - pc.cyNorthZ);
+          pushLine([srcWin.x, srcWin.y, srcWin.z], [pc.px, yParapet, pc.pz], [0.22, 0.88, 0.52, 0.88]);
+          pushLine([pc.px, yParapet, pc.pz], [pc.px, yHitSky, pc.cyNorthZ], [0.16, 0.95, 0.48, 0.96]);
         }
       }
     }
