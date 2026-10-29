@@ -392,36 +392,64 @@
   #mobile-walk-pad {
     display: none;
     position: absolute;
-    left: 14px;
-    bottom: 84px;
+    left: 356px;
+    bottom: 64px;
     width: 132px;
     height: 132px;
-    z-index: 19;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.88) 100%);
+    border: 2px solid rgba(56, 189, 248, 0.45);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.48), inset 0 0 18px rgba(56, 189, 248, 0.14);
+    z-index: 25;
     pointer-events: auto;
     touch-action: none;
-  }
-  .walk-pad-btn {
-    position: absolute;
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    background: rgba(15, 23, 42, 0.82);
-    border: 1px solid rgba(56, 189, 248, 0.45);
-    color: #f8fafc;
-    font-size: 16px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     user-select: none;
     -webkit-user-select: none;
+    backdrop-filter: blur(8px);
   }
-  .walk-pad-btn:active { background: #0284c7; border-color: #fff; }
-  .walk-pad-btn.up    { top: 0; left: 45px; }
-  .walk-pad-btn.down  { bottom: 0; left: 45px; }
-  .walk-pad-btn.left  { top: 45px; left: 0; }
-  .walk-pad-btn.right { top: 45px; right: 0; }
+  #mobile-walk-pad.active {
+    border-color: rgba(56, 189, 248, 0.9);
+    box-shadow: 0 6px 28px rgba(56, 189, 248, 0.32), inset 0 0 22px rgba(56, 189, 248, 0.25);
+  }
+  #mobile-walk-pad::before {
+    content: '';
+    position: absolute;
+    inset: 18px;
+    border-radius: 50%;
+    border: 1px dashed rgba(148, 163, 184, 0.28);
+    pointer-events: none;
+  }
+  .joy-dir {
+    position: absolute;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(148, 163, 184, 0.65);
+    pointer-events: none;
+    line-height: 1;
+  }
+  .joy-dir.up    { top: 6px; left: 50%; transform: translateX(-50%); }
+  .joy-dir.down  { bottom: 6px; left: 50%; transform: translateX(-50%); }
+  .joy-dir.left  { left: 7px; top: 50%; transform: translateY(-50%); }
+  .joy-dir.right { right: 7px; top: 50%; transform: translateY(-50%); }
+  #joystick-knob {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle at 35% 35%, #38bdf8, #0284c7 70%, #0369a1 100%);
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+    pointer-events: none;
+    transition: transform 0.04s linear;
+  }
+  #mobile-walk-pad.active #joystick-knob {
+    transition: none;
+    background: radial-gradient(circle at 35% 35%, #7dd3fc, #0284c7 65%, #1d4ed8 100%);
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.8);
+  }
 
   @media (max-width: 900px) {
     #top-bar {
@@ -461,6 +489,7 @@
     #compass-needle::before { border-bottom-width: 16px; }
     #compass-needle::after  { border-top-width: 16px; }
     #bottom-toast { display: none; }
+    #mobile-walk-pad { left: 16px; bottom: 96px; width: 126px; height: 126px; }
 
     /* Dedicated Full-Screen Settings Page (#left-panel) on Mobile */
     #left-panel {
@@ -955,12 +984,13 @@
       </div>
     </div>
 
-    <!-- Mobile Walk-Mode Virtual Touch D-Pad -->
-    <div id="mobile-walk-pad">
-      <button class="walk-pad-btn up"    data-key="KeyW">▲</button>
-      <button class="walk-pad-btn down"  data-key="KeyS">▼</button>
-      <button class="walk-pad-btn left"  data-key="KeyA">◀</button>
-      <button class="walk-pad-btn right" data-key="KeyD">▶</button>
+    <!-- Mobile Walk-Mode 360° Virtual Analog Joystick -->
+    <div id="mobile-walk-pad" title="按住向任意方向（含斜向）滑动即可连续漫游移动">
+      <span class="joy-dir up">▲</span>
+      <span class="joy-dir down">▼</span>
+      <span class="joy-dir left">◀</span>
+      <span class="joy-dir right">▶</span>
+      <div id="joystick-knob"></div>
     </div>
 
     <!-- Mobile Essential Bottom Bar (Floor Switcher + Quick Cutaway & Villa Presets) -->

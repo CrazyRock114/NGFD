@@ -196,6 +196,9 @@ const App = {
     yaw: 0.0,
     pitch: 0.12,
     keys: {},
+    joyX: 0.0,
+    joyY: 0.0,
+    joyActive: false,
     tourActive: false,
     tourWaypoints: [],
     tourIdx: 0
@@ -3920,8 +3923,15 @@ const App = {
     if (fp) fp.style.display = (mode === 'walk') ? 'block' : 'none';
     const walkPad = document.getElementById('mobile-walk-pad');
     if (walkPad) {
-      const isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
-      walkPad.style.display = (mode === 'walk' && isMobile) ? 'grid' : 'none';
+      walkPad.style.display = (mode === 'walk') ? 'block' : 'none';
+      if (mode !== 'walk') {
+        this.walk.joyX = 0.0;
+        this.walk.joyY = 0.0;
+        this.walk.joyActive = false;
+        walkPad.classList.remove('active');
+        const knob = document.getElementById('joystick-knob');
+        if (knob) knob.style.transform = 'translate(-50%, -50%)';
+      }
     }
     const hudM = document.getElementById('hud-mode');
     if (hudM) {
@@ -4394,28 +4404,40 @@ const App = {
     }, { passive: false });
 
     // Mobile & Touch Screen Gestures: 1-finger orbit/look, 2-finger pinch zoom & pan, single-tap raycast
+    // Filters out any touch active on #mobile-walk-pad so left thumb can steer joystick while right thumb rotates view!
     let touchCount = 0, tLastX = 0, tLastY = 0, tDownX = 0, tDownY = 0, pinchDist = 0, tMoved = false;
+    const getCanvasTouches = (touchList) => {
+      const arr = [];
+      for (let i = 0; i < touchList.length; i++) {
+        const t = touchList[i];
+        if (t.target && t.target.closest && t.target.closest('#mobile-walk-pad')) continue;
+        arr.push(t);
+      }
+      return arr;
+    };
     this.canvas.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 1) {
+      const ct = getCanvasTouches(e.touches);
+      if (ct.length === 1) {
         touchCount = 1;
         tMoved = false;
-        tLastX = tDownX = e.touches[0].clientX;
-        tLastY = tDownY = e.touches[0].clientY;
-      } else if (e.touches.length >= 2) {
+        tLastX = tDownX = ct[0].clientX;
+        tLastY = tDownY = ct[0].clientY;
+      } else if (ct.length >= 2) {
         touchCount = 2;
         tMoved = true;
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dx = ct[0].clientX - ct[1].clientX;
+        const dy = ct[0].clientY - ct[1].clientY;
         pinchDist = Math.hypot(dx, dy);
-        tLastX = (e.touches[0].clientX + e.touches[1].clientX) * 0.5;
-        tLastY = (e.touches[0].clientY + e.touches[1].clientY) * 0.5;
+        tLastX = (ct[0].clientX + ct[1].clientX) * 0.5;
+        tLastY = (ct[0].clientY + ct[1].clientY) * 0.5;
       }
     }, { passive: true });
 
     this.canvas.addEventListener('touchmove', (e) => {
       e.preventDefault();
-      if (e.touches.length === 1 && touchCount === 1) {
-        const cx = e.touches[0].clientX, cy = e.touches[0].clientY;
+      const ct = getCanvasTouches(e.touches);
+      if (ct.length === 1 && touchCount === 1) {
+        const cx = ct[0].clientX, cy = ct[0].clientY;
         const dx = cx - tLastX, dy = cy - tLastY;
         if (Math.hypot(cx - tDownX, cy - tDownY) > 6) tMoved = true;
         tLastX = cx; tLastY = cy;
@@ -4431,14 +4453,14 @@ const App = {
           this.orbit.target[0] -= dx * scale;
           this.orbit.target[2] -= dy * scale;
         }
-      } else if (e.touches.length >= 2) {
+      } else if (ct.length >= 2) {
         touchCount = 2;
         tMoved = true;
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dx = ct[0].clientX - ct[1].clientX;
+        const dy = ct[0].clientY - ct[1].clientY;
         const newDist = Math.hypot(dx, dy);
-        const midX = (e.touches[0].clientX + e.touches[1].clientX) * 0.5;
-        const midY = (e.touches[0].clientY + e.touches[1].clientY) * 0.5;
+        const midX = (ct[0].clientX + ct[1].clientX) * 0.5;
+        const midY = (ct[0].clientY + ct[1].clientY) * 0.5;
         const panDx = midX - tLastX, panDy = midY - tLastY;
         tLastX = midX; tLastY = midY;
 
@@ -4467,30 +4489,119 @@ const App = {
     }, { passive: false });
 
     this.canvas.addEventListener('touchend', (e) => {
+      const ct = getCanvasTouches(e.touches);
       if (touchCount === 1 && !tMoved && e.changedTouches.length === 1) {
-        this.onCanvasClick(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        const ch = e.changedTouches[0];
+        if (!ch.target || !ch.target.closest || !ch.target.closest('#mobile-walk-pad')) {
+          this.onCanvasClick(ch.clientX, ch.clientY);
+        }
       }
-      if (e.touches.length === 0) {
+      if (ct.length === 0) {
         touchCount = 0;
-      } else if (e.touches.length === 1) {
+      } else if (ct.length === 1) {
         touchCount = 1;
-        tLastX = e.touches[0].clientX;
-        tLastY = e.touches[0].clientY;
+        tLastX = ct[0].clientX;
+        tLastY = ct[0].clientY;
       }
     }, { passive: true });
 
-    // Virtual D-Pad buttons for mobile First-Person Walk mode
-    document.querySelectorAll('#mobile-walk-pad .walk-btn[data-key]').forEach((btn) => {
-      const key = btn.getAttribute('data-key');
-      const press = (ev) => { ev.preventDefault(); this.walk.keys[key] = true; };
-      const release = (ev) => { ev.preventDefault(); this.walk.keys[key] = false; };
-      btn.addEventListener('touchstart', press, { passive: false });
-      btn.addEventListener('touchend', release, { passive: false });
-      btn.addEventListener('touchcancel', release, { passive: false });
-      btn.addEventListener('mousedown', press);
-      btn.addEventListener('mouseup', release);
-      btn.addEventListener('mouseleave', release);
-    });
+    // 360° Game-Style Circular Analog Virtual Joystick (#mobile-walk-pad)
+    const walkPad = document.getElementById('mobile-walk-pad');
+    const joyKnob = document.getElementById('joystick-knob');
+    if (walkPad && joyKnob) {
+      let joyTouchId = null;
+      let joyMouseDown = false;
+      const maxRadius = 42;
+
+      const updateJoystickFromPoint = (clientX, clientY) => {
+        const rect = walkPad.getBoundingClientRect();
+        const cx = rect.left + rect.width * 0.5;
+        const cy = rect.top + rect.height * 0.5;
+        const dx = clientX - cx;
+        const dy = clientY - cy;
+        const dist = Math.hypot(dx, dy);
+        const clampedDist = Math.min(dist, maxRadius);
+        const angle = Math.atan2(dy, dx);
+        const kx = Math.cos(angle) * clampedDist;
+        const ky = Math.sin(angle) * clampedDist;
+        joyKnob.style.transform = `translate(calc(-50% + ${kx.toFixed(1)}px), calc(-50% + ${ky.toFixed(1)}px))`;
+        const normX = kx / maxRadius;
+        const normY = -ky / maxRadius; // Up on screen = positive forward (+Y)
+        const mag = Math.hypot(normX, normY);
+        if (mag < 0.08) {
+          this.walk.joyX = 0.0;
+          this.walk.joyY = 0.0;
+        } else {
+          this.walk.joyX = normX;
+          this.walk.joyY = normY;
+          this.walk.tourActive = false;
+        }
+      };
+
+      const resetJoystick = () => {
+        joyTouchId = null;
+        joyMouseDown = false;
+        this.walk.joyX = 0.0;
+        this.walk.joyY = 0.0;
+        this.walk.joyActive = false;
+        walkPad.classList.remove('active');
+        joyKnob.style.transform = 'translate(-50%, -50%)';
+      };
+
+      walkPad.addEventListener('touchstart', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (ev.changedTouches.length > 0 && joyTouchId === null) {
+          const t = ev.changedTouches[0];
+          joyTouchId = t.identifier;
+          this.walk.joyActive = true;
+          walkPad.classList.add('active');
+          updateJoystickFromPoint(t.clientX, t.clientY);
+        }
+      }, { passive: false });
+
+      walkPad.addEventListener('touchmove', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (joyTouchId === null) return;
+        for (let i = 0; i < ev.touches.length; i++) {
+          if (ev.touches[i].identifier === joyTouchId) {
+            updateJoystickFromPoint(ev.touches[i].clientX, ev.touches[i].clientY);
+            break;
+          }
+        }
+      }, { passive: false });
+
+      const onJoyTouchEnd = (ev) => {
+        if (joyTouchId === null) return;
+        for (let i = 0; i < ev.changedTouches.length; i++) {
+          if (ev.changedTouches[i].identifier === joyTouchId) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            resetJoystick();
+            break;
+          }
+        }
+      };
+      walkPad.addEventListener('touchend', onJoyTouchEnd, { passive: false });
+      walkPad.addEventListener('touchcancel', onJoyTouchEnd, { passive: false });
+
+      walkPad.addEventListener('mousedown', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        joyMouseDown = true;
+        this.walk.joyActive = true;
+        walkPad.classList.add('active');
+        updateJoystickFromPoint(ev.clientX, ev.clientY);
+      });
+      window.addEventListener('mousemove', (ev) => {
+        if (!joyMouseDown) return;
+        updateJoystickFromPoint(ev.clientX, ev.clientY);
+      });
+      window.addEventListener('mouseup', () => {
+        if (joyMouseDown) resetJoystick();
+      });
+    }
 
     window.addEventListener('keydown', (e) => {
       if (['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return;
@@ -4552,6 +4663,10 @@ const App = {
     if (k['KeyS'] || k['ArrowDown']) fwd -= 1;
     if (k['KeyD'] || k['ArrowRight']) right += 1;
     if (k['KeyA'] || k['ArrowLeft']) right -= 1;
+    if (Math.hypot(this.walk.joyX || 0, this.walk.joyY || 0) > 0.05) {
+      fwd += this.walk.joyY;
+      right += this.walk.joyX;
+    }
     const mult = (k['ShiftLeft'] || k['ShiftRight']) ? 1.85 : 1.0;
 
     // Support WSAD / Arrow camera panning & Q/E rotation in Orbit (3D俯览) & Ortho (正交平面) modes!
@@ -4561,7 +4676,8 @@ const App = {
         if (k['KeyE']) this.orbit.yaw += 1.4 * dt;
         if (fwd !== 0 || right !== 0) {
           const len = Math.hypot(fwd, right);
-          fwd /= len; right /= len;
+          const scale = Math.min(1.0, len) / (len || 1);
+          fwd *= scale; right *= scale;
           const panSpeed = Math.max(8.5, this.orbit.distance * 0.65) * mult;
           const sin = Math.sin(this.orbit.yaw), cos = Math.cos(this.orbit.yaw);
           this.orbit.target[0] += (sin * fwd + cos * right) * panSpeed * dt;
@@ -4570,7 +4686,8 @@ const App = {
       } else if (this.cameraMode === 'ortho') {
         if (fwd !== 0 || right !== 0) {
           const len = Math.hypot(fwd, right);
-          fwd /= len; right /= len;
+          const scale = Math.min(1.0, len) / (len || 1);
+          fwd *= scale; right *= scale;
           const panSpeed = Math.max(6.5, this.orbit.orthoZoom * 0.85) * mult;
           this.orbit.target[0] += right * panSpeed * dt;
           this.orbit.target[2] -= fwd * panSpeed * dt;
@@ -4606,7 +4723,9 @@ const App = {
 
     if (fwd !== 0 || right !== 0) {
       const len = Math.hypot(fwd, right);
-      fwd /= len; right /= len;
+      const mag = Math.min(1.0, len);
+      fwd = (fwd / (len || 1)) * mag;
+      right = (right / (len || 1)) * mag;
       const sin = Math.sin(this.walk.yaw), cos = Math.cos(this.walk.yaw);
       const dx = (sin * fwd + cos * right) * this.walkSpeed * mult * dt;
       const dz = (-cos * fwd + sin * right) * this.walkSpeed * mult * dt;
