@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>宁国府邸 11号楼 (U11) 四层别墅 3D 数字化底模与室内设计可视化 (V2 Pro 融合增强版)</title>
+<style>
+  :root {
+    --bg-dark: #0f172a;
+    --panel-bg: rgba(15, 23, 42, 0.88);
+    --panel-border: rgba(148, 163, 184, 0.22);
+    --accent: #38bdf8;
+    --accent-2: #f59e0b;
+    --danger: #ef4444;
+    --success: #10b981;
+    --text-main: #f8fafc;
+    --text-sub: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body, html { width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--text-main); }
+
+  #viewport-container { position: relative; width: 100vw; height: 100vh; display: flex; }
+  #canvas-wrap { position: relative; flex: 1; height: 100%; overflow: hidden; }
+  #gl-canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+  #gl-canvas:active { cursor: grabbing; }
+  #label-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+
+  /* Plan Overlay Image (for Top-Down Superimpose) */
+  #plan-overlay-img {
+    position: absolute;
+    pointer-events: none;
+    display: none;
+    opacity: 0.45;
+    transform-origin: center center;
+    z-index: 4;
+  }
+
+  /* Side-by-Side Plan Comparison Split Panel */
+  #compare-panel {
+    width: 44%;
+    height: 100%;
+    background: #1e293b;
+    border-left: 1px solid var(--panel-border);
+    display: none;
+    flex-direction: column;
+    z-index: 15;
+  }
+  #compare-panel.active { display: flex; }
+  .compare-header {
+    padding: 10px 14px;
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom: 1px solid var(--panel-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .compare-body {
+    flex: 1;
+    position: relative;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+  }
+  .compare-body img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.15s ease;
+  }
+
+  /* Top Bar */
+  #top-bar {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    height: 52px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    z-index: 20;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  .brand-title { display: flex; align-items: center; gap: 10px; }
+  .brand-badge {
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .brand-name { font-size: 14.5px; font-weight: 600; }
+  .brand-meta { font-size: 11.5px; color: var(--text-sub); }
+
+  .top-actions { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .btn {
+    background: rgba(51, 65, 85, 0.75);
+    color: var(--text-main);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+  }
+  .btn:hover { background: rgba(71, 85, 105, 0.9); border-color: var(--accent); }
+  .btn.active { background: #0284c7; border-color: #38bdf8; color: #fff; font-weight: 600; }
+  .btn.warn { background: rgba(217, 119, 6, 0.85); border-color: #fbbf24; }
+  .btn.success { background: rgba(5, 150, 105, 0.85); border-color: #34d399; }
+  .btn.purple { background: rgba(124, 58, 237, 0.85); border-color: #a78bfa; color: #fff; font-weight: 600; }
+
+  /* Left Control Panel */
+  #left-panel {
+    position: absolute;
+    top: 74px;
+    left: 12px;
+    bottom: 12px;
+    width: 332px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    z-index: 20;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--panel-border);
+    background: rgba(15, 23, 42, 0.6);
+  }
+  .tab-btn {
+    padding: 10px 4px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-sub);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; background: rgba(56, 189, 248, 0.08); }
+  .tab-content { flex: 1; overflow-y: auto; padding: 14px; display: none; }
+  .tab-content.active { display: block; }
+
+  .sec-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 12px 0 7px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sec-title:first-child { margin-top: 0; }
+  .control-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 7px;
+    font-size: 12px;
+  }
+  .control-row label { color: #e2e8f0; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .control-row input[type="range"] { width: 120px; accent-color: var(--accent); }
+  .control-row input[type="number"], .control-row select, .control-row input[type="date"] {
+    background: #1e293b;
+    border: 1px solid var(--panel-border);
+    color: #fff;
+    padding: 4px 7px;
+    border-radius: 5px;
+    font-size: 11.5px;
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 8px; }
+
+  .info-card {
+    background: rgba(30, 41, 59, 0.75);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 7px;
+    padding: 9px 10px;
+    margin-bottom: 9px;
+    font-size: 11.5px;
+    line-height: 1.48;
+  }
+  .info-card .kv { display: flex; justify-content: space-between; margin-bottom: 3px; }
+  .info-card .kv span:first-child { color: var(--text-sub); }
+  .info-card .kv span:last-child { font-weight: 600; color: #f1f5f9; }
+
+  /* Right Status & Compass HUD */
+  #right-hud {
+    position: absolute;
+    top: 74px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    z-index: 18;
+    pointer-events: none;
+  }
+  .hud-box {
+    background: var(--panel-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--panel-border);
+    border-radius: 9px;
+    padding: 10px 14px;
+    font-size: 12px;
+    pointer-events: auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+  }
+  #compass-widget {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(30,41,59,0.95), rgba(15,23,42,0.98));
+    border: 2px solid rgba(56, 189, 248, 0.45);
+    position: relative;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  }
+  #compass-dial {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 50%;
+  }
+  .c-dir { position: absolute; font-size: 10px; font-weight: 700; color: #94a3b8; line-height: 1; }
+  .c-dir.n { top: 4px; left: 50%; transform: translateX(-50%); color: #ef4444; font-size: 11px; }
+  .c-dir.s { bottom: 4px; left: 50%; transform: translateX(-50%); }
+  .c-dir.e { right: 5px; top: 50%; transform: translateY(-50%); }
+  .c-dir.w { left: 5px; top: 50%; transform: translateY(-50%); }
+  #compass-needle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 44px;
+    margin-top: -22px;
+    margin-left: -4px;
+    transform-origin: 50% 50%;
+    pointer-events: none;
+  }
+  #compass-needle::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 22px solid #ef4444;
+  }
+  #compass-needle::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 22px solid #cbd5e1;
+  }
+
+  /* 3D Room & Dimension Labels */
+  .label-3d {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    background: rgba(15, 23, 42, 0.84);
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    color: #f8fafc;
+    padding: 3px 7px;
+    border-radius: 5px;
+    font-size: 11px;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  }
+  .label-3d .l-area { color: #38bdf8; font-weight: 700; margin-left: 4px; }
+  .label-3d .l-src { display: block; font-size: 9.5px; color: #94a3b8; }
+  .label-3d.measure-tag {
+    background: rgba(245, 158, 11, 0.95);
+    color: #0f172a;
+    font-weight: 700;
+    border-color: #fff;
+    font-size: 12px;
+  }
+
+  /* First Person Crosshair & Help Toast */
+  #fp-crosshair {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 14px; height: 14px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    display: none;
+    z-index: 12;
+  }
+  #fp-crosshair::before, #fp-crosshair::after {
+    content: ''; position: absolute; background: rgba(56, 189, 248, 0.9);
+  }
+  #fp-crosshair::before { top: 6px; left: 0; width: 14px; height: 2px; }
+  #fp-crosshair::after { left: 6px; top: 0; width: 2px; height: 14px; }
+
+  #bottom-toast {
+    position: absolute;
+    bottom: 16px;
+    left: 356px;
+    right: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    z-index: 18;
+  }
+  .toast-pill {
+    background: var(--panel-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--panel-border);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    color: #e2e8f0;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    flex-wrap: wrap;
+  }
+  .badge-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+  /* Interactive Satellite Calibration Box */
+  #sat-calib-wrap {
+    position: relative;
+    width: 100%;
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: #090d16;
+    margin-bottom: 8px;
+  }
+  #sat-calib-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    cursor: crosshair;
+    touch-action: none;
+  }
+
+  /* ==========================================================================
+     Mobile-First Responsive UI & Dedicated Full-Screen Settings Page (移动端优化)
+     - Main 3D Viewport on mobile keeps ONLY essential controls:
+       * Top Bar: Camera Mode (俯览 / 平面 / 漫游) + ⚙️ 设置 button
+       * Bottom Dock: Floor Switcher (全楼 / B1 / 1F / 2F / 3F) + Quick Cut/Villa Jump
+       * Walk Mode: Touch Virtual D-Pad for walking & climbing stairs on phone/tablet
+     - All detailed settings (materials, furniture style, balustrade style, layers,
+       privacy rays, sun/weather, measurement, calibration) live in the standalone
+       full-screen Mobile Settings Page (#left-panel.mobile-settings-open).
+     ========================================================================== */
+  #mobile-settings-header {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(15, 23, 42, 0.98);
+    border-bottom: 1px solid var(--panel-border);
+  }
+  #mobile-settings-header .ms-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #btn-open-settings-mobile { display: none; }
+  #mobile-bottom-dock { display: none; }
+  #mobile-walk-pad {
+    display: none;
+    position: absolute;
+    left: 14px;
+    bottom: 84px;
+    width: 132px;
+    height: 132px;
+    z-index: 19;
+    pointer-events: auto;
+    touch-action: none;
+  }
+  .walk-pad-btn {
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.82);
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    color: #f8fafc;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .walk-pad-btn:active { background: #0284c7; border-color: #fff; }
+  .walk-pad-btn.up    { top: 0; left: 45px; }
+  .walk-pad-btn.down  { bottom: 0; left: 45px; }
+  .walk-pad-btn.left  { top: 45px; left: 0; }
+  .walk-pad-btn.right { top: 45px; right: 0; }
+
+  @media (max-width: 900px) {
+    #top-bar {
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      height: 46px;
+      padding: 0 10px;
+      border-radius: 12px;
+    }
+    .brand-name, .brand-meta { display: none; }
+    .brand-badge { font-size: 11.5px; padding: 4px 8px; }
+
+    /* Hide all secondary/detail buttons on the top bar on mobile; keep only Camera Mode + ⚙️ 设置 */
+    .top-actions > * { display: none !important; }
+    .top-actions > #btn-mode-orbit,
+    .top-actions > #btn-mode-ortho,
+    .top-actions > #btn-mode-walk,
+    .top-actions > #btn-open-settings-mobile {
+      display: inline-flex !important;
+      padding: 6px 9px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+    #btn-open-settings-mobile {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      border-color: #a78bfa;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* Hide desktop HUD telemetry box & bottom legend toast on mobile; keep compact compass */
+    #right-hud { top: 62px; right: 10px; }
+    #right-hud .hud-box { display: none; }
+    #compass-widget { width: 54px; height: 54px; }
+    #compass-needle { height: 32px; margin-top: -16px; }
+    #compass-needle::before { border-bottom-width: 16px; }
+    #compass-needle::after  { border-top-width: 16px; }
+    #bottom-toast { display: none; }
+
+    /* Dedicated Full-Screen Settings Page (#left-panel) on Mobile */
+    #left-panel {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      max-height: 100vh;
+      border-radius: 0;
+      border: none;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.98);
+      transform: translateY(105%);
+      transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+    #left-panel.mobile-settings-open {
+      transform: translateY(0%);
+      pointer-events: auto;
+    }
+    #mobile-settings-header { display: flex; }
+    .tab-btn { padding: 12px 4px; font-size: 13px; }
+    .tab-content { padding: 16px; padding-bottom: 48px; }
+    .control-row { margin-bottom: 11px; font-size: 13px; }
+    .control-row select, .control-row input[type="number"], .control-row input[type="date"] {
+      padding: 6px 8px;
+      font-size: 13px;
+    }
+    .btn { padding: 8px 11px; font-size: 12.5px; }
+
+    /* Mobile Essential Bottom Dock (Floor Switcher + Quick Cutaway & Villa Jump) */
+    #mobile-bottom-dock {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 10px;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .m-dock-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      padding: 6px 8px;
+      border-radius: 12px;
+      pointer-events: auto;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+      overflow-x: auto;
+    }
+    .m-dock-btn {
+      flex: 1;
+      min-width: 44px;
+      text-align: center;
+      justify-content: center;
+      padding: 7px 6px;
+      font-size: 12px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
+    /* Compare panel full-screen overlay on mobile */
+    #compare-panel {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 110;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+<div id="viewport-container">
+  <!-- Top Bar -->
+  <header id="top-bar">
+    <div class="brand-title">
+      <span class="brand-badge" id="ver-badge">U11~U8 四联 · V2 Pro</span>
+      <div>
+        <div class="brand-name">上海宁国府邸 U11 · U10 · U9 · U8 四联四层别墅 3D 重建与室内设计系统</div>
+        <div class="brand-meta">50cm户间双墙(20+10+20cm)与填充墙打通 | 西侧家具0重叠 | 地图比例尺精确河道与对岸建筑</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <!-- Version Switcher: Instant V1 Classic <-> V2 Pro Mode + Standalone V1 Backup Link -->
+      <button class="btn purple" id="btn-ver-toggle" onclick="App.toggleVersionMode()" title="在 V2 Pro 融合增强版 与 V1 经典原版渲染模式之间实时无损切换">✨ 当前: V2 融合增强版 (点击切回 V1)</button>
+      <a class="btn" href="backup_v1_classic/index.html" title="直接打开独立备份的 V1 经典原版网页 (backup_v1_classic/index.html)">⏪ 打开 V1 独立备份页</a>
+      <span style="width:1px;height:20px;background:rgba(148,163,184,0.3);margin:0 2px;"></span>
+      <button class="btn active" id="btn-mode-orbit" onclick="App.setCameraMode('orbit')">🌐 俯览旋转</button>
+      <button class="btn" id="btn-mode-ortho" onclick="App.setCameraMode('ortho')">📐 正交平面</button>
+      <button class="btn" id="btn-mode-walk" onclick="App.setCameraMode('walk')">🚶 漫游</button>
+      <button class="btn purple" id="btn-open-settings-mobile" onclick="App.toggleMobileSettings(true)">⚙️ 设置</button>
+      <span style="width:1px;height:20px;background:rgba(148,163,184,0.3);margin:0 2px;"></span>
+      <button class="btn active" id="btn-floor-ALL" onclick="App.setFloorFilter('ALL')">整栋 (B1-3F)</button>
+      <button class="btn" id="btn-floor-B1" onclick="App.setFloorFilter('B1')">B1</button>
+      <button class="btn" id="btn-floor-1F" onclick="App.setFloorFilter('1F')">1F</button>
+      <button class="btn" id="btn-floor-2F" onclick="App.setFloorFilter('2F')">2F</button>
+      <button class="btn" id="btn-floor-3F" onclick="App.setFloorFilter('3F')">3F</button>
+      <span style="width:1px;height:20px;background:rgba(148,163,184,0.3);margin:0 2px;"></span>
+      <button class="btn success" id="btn-party-toggle" onclick="App.togglePartyWallKnockthrough()" title="切换 U11-U10 50cm 户间墙上的蓝色虚线填充墙 (4120/4000/1800mm) 打通或保留状态">🔗 二联户间墙: 已打通</button>
+      <button class="btn success" id="btn-stone-seams" onclick="App.toggleStonePaintSeams()" title="切换庭院内立面白色真石漆是否为整面无拼缝涂装或带分格拼缝效果">🧱 庭院真石漆: 无拼缝</button>
+      <button class="btn active" id="btn-floor-mat" onclick="App.toggleFloorMaterial()" title="在原木色地板与黑灰色地板两种材质之间一键切换">🪨 地板: 黑灰色地板</button>
+      <button class="btn purple" id="btn-furn-style" onclick="App.cycleFurnitureStyle()" title="在 U2 样板房高定家具风格、装饰参考稿原配风格、极简留白画廊风格之间一键切换">🛋️ 家具: U2样板房风格</button>
+      <button class="btn active" id="btn-balustrade-style" onclick="App.cycleBalustradeStyle()" title="在 1.白钢竖杆+一体连续木扶手、2.全木质围栏、3.极简玻璃围挡 三种围栏样式之间一键切换">栏杆: 1.白钢+一体木扶手</button>
+      <button class="btn warn" id="btn-privacy-toggle" onclick="App.togglePrivacySightlines()" title="开关河对岸《田园别墅》(31~35幢等)北立面/东立面隐私敏感窗分级着色与三维视线射线束">👁️ 田园别墅隐私视线与敏感窗: 开启</button>
+      <button class="btn success" id="btn-roof-toggle" onclick="App.toggleRoofCeiling()" title="一键开关最顶层 (3F) 楼顶天花板与屋面女儿墙">🏠 顶楼天花板: 显示</button>
+      <button class="btn warn" id="btn-compare" onclick="App.toggleComparePanel()">📋 图纸同屏对照</button>
+    </div>
+  </header>
+
+  <!-- Left Multi-Tab Panel (Desktop Sidebar / Mobile Full-Screen Dedicated Settings Page) -->
+  <aside id="left-panel">
+    <div id="mobile-settings-header">
+      <div class="ms-title">⚙️ 详细设置与工程参数</div>
+      <button class="btn success" onclick="App.toggleMobileSettings(false)">✓ 完成返回 3D 视图</button>
+    </div>
+    <div class="tabs">
+      <div class="tab-btn active" onclick="App.switchTab('tab-view', this)">漫游与图层</div>
+      <div class="tab-btn" onclick="App.switchTab('tab-edit', this)">尺寸与软装</div>
+      <div class="tab-btn" onclick="App.switchTab('tab-sun', this)">日照与天气</div>
+      <div class="tab-btn" onclick="App.switchTab('tab-export', this)">贴图与标定</div>
+    </div>
+
+    <!-- Tab 1: View & Layers -->
+    <div class="tab-content active" id="tab-view">
+      <div class="sec-title">
+        <span>V2 建筑立面剖切与全局样式设置</span>
+        <span style="font-size:10px;color:#34d399;">U11~U8 四联</span>
+      </div>
+      <div class="grid-2" style="margin-bottom:8px;">
+        <button class="btn purple" onclick="App.toggleVersionMode()">✨ 切换 V2 / V1 模式</button>
+        <button class="btn warn" onclick="App.toggleComparePanel(); App.toggleMobileSettings(false);">📋 图纸同屏对照</button>
+      </div>
+      <div class="control-row">
+        <span>俯览内墙剖切高度:</span>
+        <div>
+          <input type="range" id="rng-cut-height" min="1.10" max="3.80" step="0.05" value="3.80" oninput="App.setWallCutHeight(this.value)" />
+          <span id="lbl-cut-height" style="display:inline-block;width:44px;text-align:right;">满高</span>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-bottom:8px;">
+        <button class="btn" onclick="App.setWallCutHeight(1.45)">✂️ 俯览半高剖切 (1.45m)</button>
+        <button class="btn" onclick="App.setWallCutHeight(3.80)">🏛️ 恢复全墙满高</button>
+      </div>
+      <div class="control-row">
+        <span>全屋地板材质选择:</span>
+        <select id="sel-floor-mat" onchange="App.setFloorMaterial(this.value)" style="width:175px;">
+          <option value="darkgrey" selected>🪨 黑灰色地板 (U2样板间同款)</option>
+          <option value="wood">🪵 原木色地板 (Natural Oak)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <span>全屋软装家具风格:</span>
+        <select id="sel-furn-style" onchange="App.setFurnitureStyle(this.value)" style="width:175px;">
+          <option value="u2_model" selected>🎨 U2 样板房高定风格 (实拍同款)</option>
+          <option value="design">🏛️ 装饰参考稿原配风格 (261022)</option>
+          <option value="minimal">🤍 极简留白艺术画廊风 (可扩展)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <span>外回廊与中庭围栏样式:</span>
+        <select id="sel-balustrade-style" onchange="App.setBalustradeStyle(this.value)" style="width:175px;">
+          <option value="u2_steel" selected>1. 白钢密竖杆 + 一体连续木扶手</option>
+          <option value="wood">2. 全木质围栏 (实木竖杆+连续木扶手)</option>
+          <option value="glass">3. 极简无框玻璃围挡 (无顶扶手超白夹胶玻璃)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-party-knock" checked onchange="App.syncPartyWallToggle(this.checked)" /> 🔗 打通 U11-U10 户间填充墙 (50cm双墙: 4120/4000/1800mm)</label>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-stone-seams" onchange="App.syncStonePaintSeams(this.checked)" /> 🧱 显示庭院白色真石漆分格拼缝 (取消勾选=整面无拼缝真石漆)</label>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-privacy-rays" checked onchange="App.togglePrivacySightlines()" /> 👁️ 显示对岸《田园别墅》(31~35幢)敏感窗(🔴北/东卧窗)与视线束</label>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-roof-ceiling" checked onchange="App.syncRoofToggle(this.checked)" /> 🏠 显示最顶层 (3F) 楼顶天花板与屋面女儿墙</label>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-fenestration" checked onchange="App.updateLayers()" /> 🪟 显示门窗过梁/窗台墙/半透明玻璃框</label>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-walk-roof" checked onchange="App.updateLayers()" /> 💡 漫游模式自动开启室内柔和暖光照明</label>
+      </div>
+
+      <div class="sec-title">核心结构与软硬装图层开关</div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-ext-walls" checked onchange="App.updateLayers()" /> 保留全部外围外墙 (外砖内白)</label>
+        <span style="color:#10b981;font-size:10.5px;">强制保留</span>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-struct-walls" checked onchange="App.updateLayers()" /> 保留原册深黑粗线结构墙</label>
+        <span style="color:#10b981;font-size:10.5px;">结构保留</span>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-highlight-struct" onchange="App.updateLayers()" /> 🔥 高亮深黑粗线结构墙与外墙</label>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-part-walls" checked onchange="App.updateLayers()" /> 显示非承重室内隔墙 (可一键隐藏)</label>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-furniture" checked onchange="App.updateLayers()" /> 显示软装家具/三角钢琴/厨卫/遮阳伞</label>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-slabs" checked onchange="App.updateLayers()" /> 显示各层楼板与 DCA 小区园林</label>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-stairs" checked onchange="App.updateLayers()" /> 显示旋转主梯/东南副梯/庭院外梯</label>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-cad-lines" onchange="App.updateLayers()" /> 显示 2D CAD 尺寸辅助线图层</label>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-room-labels" checked onchange="App.updateLayers()" /> 显示房间双口径面积与来源标签</label>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-axis-grid" checked onchange="App.updateLayers()" /> 显示建筑轴网与指北坐标格</label>
+      </div>
+
+      <div class="sec-title">快捷相机机位 (重点验收视角)</div>
+      <div class="grid-2">
+        <button class="btn" onclick="App.goToPreset('courtyard_up')">🌤️ 1F庭院仰望天空</button>
+        <button class="btn" onclick="App.goToPreset('void_2f_down')">👀 2F走廊俯视1F庭院</button>
+        <button class="btn" onclick="App.goToPreset('void_3f_down')">🌿 3F露台俯视天井</button>
+        <button class="btn" onclick="App.goToPreset('main_stair')">🌀 旋转主梯连通视角</button>
+        <button class="btn" onclick="App.goToPreset('living_1f')">🎹 1F客厅钢琴与餐厅</button>
+        <button class="btn" onclick="App.goToPreset('master_3f')">🛏️ 3F主卧与主卫套间</button>
+        <button class="btn purple" style="grid-column: span 2; justify-content: center;" onclick="App.goToPreset('u11_u10_combined')">🔗 U11+U10 二联打通全景与 50cm 户间墙俯览视角</button>
+        <button class="btn success" onclick="App.goToPreset('u9_overview')">🏛️ U9 四层别墅与中庭</button>
+        <button class="btn success" onclick="App.goToPreset('u8_overview')">📐 U8 别墅(12°斜东墙)</button>
+        <button class="btn active" style="grid-column: span 2; justify-content: center;" onclick="App.goToPreset('four_villas_all')">🏘️ U11 + U10 + U9 + U8 南排四联全景俯览</button>
+        <button class="btn warn" style="grid-column: span 2; justify-content: center;" onclick="App.goToPreset('river_privacy')">🌊 南侧公共绿地·野奴泾河道与对岸住宅精确比例尺视角</button>
+      </div>
+
+      <div class="sec-title">第一人称漫游与楼梯步行控制</div>
+      <div class="control-row">
+        <span>视野广角 (FOV)</span>
+        <div>
+          <input type="range" id="rng-fov" min="50" max="110" step="1" value="84" oninput="App.setFOV(this.value)" />
+          <span id="lbl-fov" style="display:inline-block;width:34px;text-align:right;">84°</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span>移动速度 (m/s)</span>
+        <div>
+          <input type="range" id="rng-speed" min="1.0" max="8.0" step="0.2" value="3.4" oninput="App.setWalkSpeed(this.value)" />
+          <span id="lbl-speed" style="display:inline-block;width:44px;text-align:right;">3.4m/s</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-collision" checked /> 启用墙体碰撞与真实踏步爬升</label>
+      </div>
+      <div class="grid-2">
+        <button class="btn success" onclick="App.startAutoStairTour('B1_to_3F')">▶️ 自动步行 B1→1F→2F→3F</button>
+        <button class="btn warn" onclick="App.startAutoStairTour('3F_to_B1')">◀️ 自动步行 3F→2F→1F→B1</button>
+      </div>
+      <div style="margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.45;">
+        ⌨️ <b>全模式键盘控制</b>：俯览/正交顶视下按 <b>W/S/A/D</b>（或方向键）平移镜头，<b>Q/E</b> 水平旋转，按住 <b>Shift</b> 加速。
+      </div>
+    </div>
+
+    <!-- Tab 2: Dimensions, Measure & Furniture Edit -->
+    <div class="tab-content" id="tab-edit">
+      <div class="sec-title">三维两点测距与尺寸核验</div>
+      <div class="grid-2">
+        <button class="btn" id="btn-measure-toggle" onclick="App.toggleMeasureMode()">📏 开启两点测距</button>
+        <button class="btn" onclick="App.clearMeasurements()">🗑️ 清除测距线</button>
+      </div>
+      <div class="info-card" id="measure-result-box">
+        <div class="kv"><span>当前测距状态:</span><span id="m-status">未开启 (点击上方按钮)</span></div>
+        <div class="kv"><span>最近测量距离:</span><span id="m-dist">-- m (-- mm)</span></div>
+        <div class="kv"><span>ΔX / ΔY / ΔZ:</span><span id="m-delta">--</span></div>
+      </div>
+
+      <div class="sec-title">软装家具风格切换、移动、旋转与保存</div>
+      <div class="control-row">
+        <span>全屋家具风格方案:</span>
+        <select id="sel-furn-style-edit" onchange="App.setFurnitureStyle(this.value)" style="width:175px;">
+          <option value="u2_model" selected>🎨 U2 样板房高定风格 (实拍同款)</option>
+          <option value="design">🏛️ 装饰参考稿原配风格 (261022)</option>
+          <option value="minimal">🤍 极简留白艺术画廊风 (可扩展)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <span>选择家具构件:</span>
+        <select id="sel-furniture" style="width:175px;" onchange="App.selectFurnitureById(this.value)"></select>
+      </div>
+      <div class="control-row">
+        <span>X 坐标 (东西 m):</span>
+        <input type="number" id="inp-furn-x" step="0.1" style="width:90px;" onchange="App.updateSelectedFurniture()" />
+      </div>
+      <div class="control-row">
+        <span>Z 坐标 (南北 m):</span>
+        <input type="number" id="inp-furn-z" step="0.1" style="width:90px;" onchange="App.updateSelectedFurniture()" />
+      </div>
+      <div class="control-row">
+        <span>旋转角度 (°):</span>
+        <div>
+          <input type="range" id="inp-furn-rot" min="-180" max="180" step="5" value="0" oninput="App.updateSelectedFurniture()" style="width:95px;" />
+          <span id="lbl-furn-rot" style="display:inline-block;width:36px;text-align:right;">0°</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span>尺寸 (宽×深×高 m):</span>
+        <div style="display:flex;gap:4px;">
+          <input type="number" id="inp-furn-w" step="0.1" style="width:52px;" onchange="App.updateSelectedFurniture()" />
+          <input type="number" id="inp-furn-d" step="0.1" style="width:52px;" onchange="App.updateSelectedFurniture()" />
+          <input type="number" id="inp-furn-h" step="0.1" style="width:52px;" onchange="App.updateSelectedFurniture()" />
+        </div>
+      </div>
+      <div class="grid-2">
+        <button class="btn success" onclick="App.saveEditsToLocal()">💾 保存编辑到本地</button>
+        <button class="btn" onclick="App.resetEdits()">🔄 恢复设计稿初始布局</button>
+      </div>
+
+      <div class="sec-title">关键建筑参数实时校准 (二联层高示意: 5450/3500/3500/3250)</div>
+      <div class="control-row">
+        <span>B1 层高 (二联示意 5.45m):</span>
+        <input type="number" id="inp-h-B1" step="0.05" value="5.45" style="width:75px;" onchange="App.updateBuildingHeights()" />
+      </div>
+      <div class="control-row">
+        <span>1F 层高 (二联示意 3.50m):</span>
+        <input type="number" id="inp-h-1F" step="0.05" value="3.50" style="width:75px;" onchange="App.updateBuildingHeights()" />
+      </div>
+      <div class="control-row">
+        <span>2F 层高 (二联示意 3.50m):</span>
+        <input type="number" id="inp-h-2F" step="0.05" value="3.50" style="width:75px;" onchange="App.updateBuildingHeights()" />
+      </div>
+      <div class="control-row">
+        <span>3F 层高 (二联示意 3.25m):</span>
+        <input type="number" id="inp-h-3F" step="0.05" value="3.25" style="width:75px;" onchange="App.updateBuildingHeights()" />
+      </div>
+
+      <div class="sec-title">U11 & U10 全屋空间：图注面积 vs 模型实测表</div>
+      <div id="room-table-wrap" style="max-height:210px;overflow-y:auto;border:1px solid var(--panel-border);border-radius:6px;font-size:11px;"></div>
+    </div>
+
+    <!-- Tab 3: Sun & Weather -->
+    <div class="tab-content" id="tab-sun">
+      <div class="sec-title">上海真实地理天文日照系统</div>
+      <div class="info-card">
+        <div class="kv"><span>项目定位:</span><span>上海宁国府邸 11号楼</span></div>
+        <div class="kv"><span>地理坐标:</span><span>31.22° N, 121.43° E (UTC+8)</span></div>
+        <div class="kv"><span>正北换算:</span><span>卫星图上北下南 (图纸左上45°为正北)</span></div>
+        <div class="kv"><span>建筑朝向:</span><span>南立面法线方位角 225° (西南朝向)</span></div>
+      </div>
+
+      <div class="control-row">
+        <span>模拟日期:</span>
+        <input type="date" id="inp-sun-date" value="2026-06-21" onchange="App.updateSunAndWeather()" />
+      </div>
+      <div class="grid-2">
+        <button class="btn" onclick="App.setSolarPreset('2026-03-20', 12)">🌸 春分正午</button>
+        <button class="btn" onclick="App.setSolarPreset('2026-06-21', 12)">☀️ 夏至正午</button>
+        <button class="btn" onclick="App.setSolarPreset('2026-09-23', 14)">🍂 秋分午后</button>
+        <button class="btn" onclick="App.setSolarPreset('2026-12-22', 13.5)">❄️ 冬至日照</button>
+      </div>
+      <div class="control-row">
+        <span>太阳时刻:</span>
+        <div>
+          <input type="range" id="inp-sun-hour" min="5.0" max="19.5" step="0.1" value="13.5" oninput="App.updateSunAndWeather()" />
+          <span id="lbl-sun-hour" style="display:inline-block;width:44px;text-align:right;">13:30</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="kv"><span>太阳高度角 (Altitude):</span><span id="lbl-solar-alt">--°</span></div>
+        <div class="kv"><span>太阳方位角 (Azimuth):</span><span id="lbl-solar-azi">--° (正北0°顺时针)</span></div>
+        <div class="kv"><span>天井采光状态:</span><span id="lbl-courtyard-sun">阳光直射入庭院</span></div>
+      </div>
+
+      <div class="sec-title">天气模拟与实时气象接入 (室内自动避雨)</div>
+      <div class="grid-3">
+        <button class="btn active" id="btn-w-sunny" onclick="App.setWeather('sunny')">☀️ 晴天</button>
+        <button class="btn" id="btn-w-cloudy" onclick="App.setWeather('cloudy')">☁️ 阴天</button>
+        <button class="btn" id="btn-w-rainy" onclick="App.setWeather('rainy')">🌧️ 雨天(天井落雨)</button>
+      </div>
+      <button class="btn" style="width:100%;justify-content:center;margin-bottom:8px;" onclick="App.fetchLiveShanghaiWeather()">📡 同步上海实时天气 (Open-Meteo API)</button>
+      <div class="info-card">
+        <div class="kv"><span>当前天气数据源:</span><span id="lbl-weather-src" style="color:#fbbf24;">本地物理气象模拟 (非实时)</span></div>
+        <div style="color:var(--text-sub);font-size:11px;margin-top:4px;">雨天模式下，雨滴自动剔除室内封闭房间，<b>仅在室外园林与中央露天天井内落雨</b>。</div>
+      </div>
+    </div>
+
+    <!-- Tab 4: 3D UV Plan Overlay, Satellite Calibration & Export -->
+    <div class="tab-content" id="tab-export">
+      <div class="sec-title">
+        <span>3D 楼板表面原图 UV 贴合 (3D Slab Overlay)</span>
+        <span style="font-size:10px;color:#34d399;">Codex融合</span>
+      </div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-3d-uv-overlay" onchange="App.update3DUVOverlay()" /> 🗺️ 将原始图纸直接贴合在 3D 各层地面上</label>
+      </div>
+      <div class="control-row">
+        <span>3D 贴图图纸源:</span>
+        <select id="sel-3d-uv-source" onchange="App.update3DUVOverlay()">
+          <option value="design">《室内装饰参考 261022》CAD 原图 (1F-3F)</option>
+          <option value="booklet">《户型册 U11》原始户型图 (B1-3F)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <span>3D 地面贴图透明度:</span>
+        <input type="range" id="rng-3d-uv-alpha" min="0.20" max="0.98" step="0.04" value="0.82" oninput="App.update3DUVOverlay()" />
+      </div>
+
+      <div class="sec-title">2D 视口半透明叠图对照</div>
+      <div class="control-row">
+        <label><input type="checkbox" id="chk-plan-overlay" onchange="App.updatePlanOverlay()" /> 在正交俯视图视口叠加 2D 原始图纸</label>
+      </div>
+      <div class="control-row">
+        <span>叠加图纸选择:</span>
+        <select id="sel-overlay-plan" onchange="App.updatePlanOverlay()">
+          <option value="assets/plans/design-1.png">装饰参考稿 - 1F 一层平面图</option>
+          <option value="assets/plans/design-2.png">装饰参考稿 - 2F 二层平面图</option>
+          <option value="assets/plans/design-3.png">装饰参考稿 - 3F 三层平面图</option>
+          <option value="assets/plans/huxing-5.png">原户型册 - B1 地下一层</option>
+          <option value="assets/plans/huxing-2.png">原户型册 - 1F 一层</option>
+          <option value="assets/plans/huxing-3.png">原户型册 - 2F 二层</option>
+          <option value="assets/plans/huxing-4.png">原户型册 - 3F 三层</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <span>2D 叠加透明度:</span>
+        <input type="range" id="rng-overlay-alpha" min="0.1" max="0.95" step="0.05" value="0.45" oninput="App.updatePlanOverlay()" />
+      </div>
+
+      <div class="sec-title">卫星图比例尺拖拽校准与敏感性验证</div>
+      <div id="sat-calib-wrap">
+        <svg id="sat-calib-svg" viewBox="0 0 1220 856">
+          <image href="assets/plans/satellite.jpg" width="1220" height="856" />
+          <line x1="283" y1="828" x2="499" y2="828" stroke="#38bdf8" stroke-width="6" />
+          <text x="391" y="812" fill="#38bdf8" font-size="26" font-weight="bold" text-anchor="middle">比例尺 25m (216px)</text>
+          <g id="sat-drag-group"></g>
+        </svg>
+      </div>
+      <div class="info-card">
+        <div class="kv"><span>当前标定基准:</span><span id="lbl-calib-mode" style="color:#34d399;">设计稿下方轴线 25,880 mm</span></div>
+        <div class="kv"><span>卫星图候选屋顶边:</span><span id="lbl-sat-roof-len">26.08 m (可拖拽上图橙色端点)</span></div>
+        <div class="grid-2" style="margin-top:6px;margin-bottom:0;">
+          <button class="btn" onclick="App.applySatelliteScale()">🛰️ 应用卫星图候选尺度</button>
+          <button class="btn active" id="btn-reset-design-scale" onclick="App.resetDesignScale()">📏 恢复设计稿 25.88m 基准</button>
+        </div>
+      </div>
+
+      <div class="sec-title">全套工程数据导出与备份还原</div>
+      <div class="grid-2">
+        <button class="btn" onclick="App.exportJSON()">📄 导出建筑 JSON</button>
+        <button class="btn" onclick="App.exportCSV()">📊 导出双口径 CSV</button>
+        <button class="btn" onclick="App.exportOBJ()">🧊 导出 3D OBJ</button>
+        <button class="btn" onclick="App.downloadPrebuiltGLB()">📦 下载 3D GLB</button>
+      </div>
+      <div class="grid-2">
+        <button class="btn" onclick="document.getElementById('file-import-json').click()">📂 加载编辑 JSON</button>
+        <button class="btn" onclick="App.captureScreenshot()">📸 导出当前高清截图</button>
+      </div>
+      <input type="file" id="file-import-json" accept=".json" style="display:none;" onchange="App.importJSONFile(event)" />
+    </div>
+  </aside>
+
+  <!-- Main 3D Canvas Area -->
+  <main id="canvas-wrap">
+    <canvas id="gl-canvas"></canvas>
+    <img id="plan-overlay-img" src="assets/plans/design-1.png" alt="Plan Overlay" />
+    <div id="label-layer"></div>
+    <div id="fp-crosshair"></div>
+
+    <!-- Right HUD (Compass & Camera Telemetry) -->
+    <div id="right-hud">
+      <div id="compass-widget" title="上海正北方向罗盘 (卫星图上北下南，建筑南立面朝向西南225°)">
+        <div id="compass-dial">
+          <span class="c-dir n">北N</span>
+          <span class="c-dir s">S</span>
+          <span class="c-dir e">E</span>
+          <span class="c-dir w">W</span>
+        </div>
+        <div id="compass-needle"></div>
+      </div>
+      <div class="hud-box">
+        <div><b>版本模式:</b> <span id="hud-ver" style="color:#a78bfa;font-weight:700;">V2 Pro 融合增强版</span></div>
+        <div><b>当前视角:</b> <span id="hud-mode">整栋自由俯览</span></div>
+        <div><b>所在楼层:</b> <span id="hud-floor" style="color:#38bdf8;font-weight:700;">ALL (B1–3F 全加载)</span></div>
+        <div><b>相机坐标:</b> <span id="hud-pos">X: 13.5, Y: 22.0, Z: 16.0 m</span></div>
+        <div><b>中央天井:</b> <span style="color:#10b981;">1F–3F 贯通天空 (室内避雨)</span></div>
+      </div>
+    </div>
+
+    <!-- Mobile Walk-Mode Virtual Touch D-Pad -->
+    <div id="mobile-walk-pad">
+      <button class="walk-pad-btn up"    data-key="KeyW">▲</button>
+      <button class="walk-pad-btn down"  data-key="KeyS">▼</button>
+      <button class="walk-pad-btn left"  data-key="KeyA">◀</button>
+      <button class="walk-pad-btn right" data-key="KeyD">▶</button>
+    </div>
+
+    <!-- Mobile Essential Bottom Bar (Floor Switcher + Quick Cutaway & Villa Presets) -->
+    <div id="mobile-bottom-dock">
+      <div class="m-dock-row">
+        <button class="btn m-dock-btn active" id="m-btn-floor-ALL" onclick="App.setFloorFilter('ALL')">全楼</button>
+        <button class="btn m-dock-btn" id="m-btn-floor-B1" onclick="App.setFloorFilter('B1')">B1</button>
+        <button class="btn m-dock-btn" id="m-btn-floor-1F" onclick="App.setFloorFilter('1F')">1F</button>
+        <button class="btn m-dock-btn" id="m-btn-floor-2F" onclick="App.setFloorFilter('2F')">2F</button>
+        <button class="btn m-dock-btn" id="m-btn-floor-3F" onclick="App.setFloorFilter('3F')">3F</button>
+        <button class="btn m-dock-btn warn" id="m-btn-cut" onclick="App.toggleQuickWallCut()">✂️ 剖切</button>
+        <button class="btn m-dock-btn success" id="m-btn-roof" onclick="App.toggleRoofCeiling()">🏠 屋顶</button>
+      </div>
+      <div class="m-dock-row">
+        <button class="btn m-dock-btn active" onclick="App.goToPreset('four_villas_all')">🏘️ 四联</button>
+        <button class="btn m-dock-btn purple" onclick="App.goToPreset('u11_u10_combined')">U11+U10</button>
+        <button class="btn m-dock-btn success" onclick="App.goToPreset('u9_overview')">U9</button>
+        <button class="btn m-dock-btn success" onclick="App.goToPreset('u8_overview')">U8</button>
+        <button class="btn m-dock-btn" onclick="App.goToPreset('courtyard_up')">🌤️ 庭院</button>
+      </div>
+    </div>
+
+    <!-- Bottom Legend Toast -->
+    <div id="bottom-toast">
+      <div class="toast-pill">
+        <span><i class="badge-dot" style="background:#ab9e8e;"></i>浅暖灰褐砖外墙 (不可拆)</span>
+        <span><i class="badge-dot" style="background:#f5f5f2;border:1px solid #64748b;"></i>纯白室内承重墙/隔墙</span>
+        <span><i class="badge-dot" style="background:#7dd3fc;"></i>参数化门窗过梁与半透明玻璃</span>
+        <span><i class="badge-dot" style="background:#f59e0b;"></i>高定白系软装+三角钢琴</span>
+        <span><i class="badge-dot" style="background:#10b981;"></i>DCA海派里弄绿篱与天井园林</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Right Split Panel for Original Drawing Comparison -->
+  <section id="compare-panel">
+    <div class="compare-header">
+      <div>
+        <b>原始图纸与 3D 模型同屏对照</b>
+        <select id="sel-compare-img" style="background:#0f172a;color:#fff;border:1px solid #475569;padding:4px 8px;border-radius:4px;margin-left:8px;" onchange="App.changeCompareImage(this.value)">
+          <option value="assets/plans/design-1.png">《室内装饰参考》1F 一层平面布置图</option>
+          <option value="assets/plans/design-2.png">《室内装饰参考》2F 二层平面布置图</option>
+          <option value="assets/plans/design-3.png">《室内装饰参考》3F 三层平面布置图</option>
+          <option value="assets/plans/huxing-5.png">《户型册 U11》B1 地下一层原始结构图</option>
+          <option value="assets/plans/huxing-2.png">《户型册 U11》1F 一层原始户型图</option>
+          <option value="assets/plans/huxing-3.png">《户型册 U11》2F 二层原始户型图</option>
+          <option value="assets/plans/huxing-4.png">《户型册 U11》3F 三层原始户型图</option>
+          <option value="assets/plans/huxing-1.png">《户型册 U11》小区总平与 975.32m² 标注</option>
+        </select>
+      </div>
+      <button class="btn" onclick="App.toggleComparePanel()">✕ 关闭对照</button>
+    </div>
+    <div class="compare-body">
+      <img id="compare-img-el" src="assets/plans/design-1.png" alt="原始图纸对照" />
+    </div>
+  </section>
+</div>
+
+<!-- Offline Pre-extracted Building Data Bundle -->
+<script src="data/u11_building_data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

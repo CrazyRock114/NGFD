@@ -1,0 +1,8 @@
+.DS_Store
+.vercel/
+node_modules/
+backup_v1_classic/
+backup_v2_enhanced/
+data/u11_building_data.json
+*.pdf
+*.log
