@@ -1926,7 +1926,20 @@ const App = {
           if (fl === '3F' && !pointInPoly2D(cx, cz, u11Loop3FPoly)) return false;
           return true;
         });
-        for (const cell of cells) {
+        const clampU11InnerSlabPt = (pt) => {
+          if (fl === 'B1') return pt;
+          let px = pt[0], pz = pt[1];
+          const znIn = -18.34 + ((px - 2.70) / 24.64) * (-5.25) + 0.16;
+          if (pz < znIn) pz = znIn;
+          if (pz > -0.14) pz = -0.14;
+          const xwIn = 0.14 + ((-pz) / 18.36) * 2.56 + 0.16;
+          if (px < xwIn) px = xwIn;
+          const xeIn = 25.65 + ((-pz) / 23.61) * 1.69 - 0.16;
+          if (px > xeIn) px = xeIn;
+          return [px, pz];
+        };
+        for (const rawCell of cells) {
+          const cell = rawCell.map(clampU11InnerSlabPt);
           const tris = triangulatePolygon2D(cell);
           for (const [i0, i1, i2] of tris) {
             const a = cell[i0], b = cell[i1], c = cell[i2];
@@ -1937,7 +1950,7 @@ const App = {
             }
           }
         }
-        const poly = fd.slab_polygon;
+        const poly = fd.slab_polygon.map(clampU11InnerSlabPt);
         for (let i=0; i<poly.length; i++) {
           const p1 = poly[i], p2 = poly[(i+1)%poly.length];
           pushLine([p1[0], y0, p1[1]], [p2[0], y0, p2[1]], [0.45, 0.45, 0.45, 0.7]);
@@ -2021,7 +2034,7 @@ const App = {
             );
           }
           for (const patch of u11StairSlabPatches) {
-            pushPrism(patch, y0 - fd.slab_thickness, y0, slabCol, [0.55, 0.53, 0.50, 0.45], true);
+            pushPrism(patch.map(clampU11InnerSlabPt), y0 - fd.slab_thickness, y0, slabCol, [0.55, 0.53, 0.50, 0.45], true);
           }
         }
 
@@ -3383,16 +3396,17 @@ const App = {
             pushTri([bx - tx*0.04, wy, bz - tz*0.04], [bx - tx*fanW, wy - downH, bz - tz*fanW], [bx + tx*fanW, wy - downH, bz + tz*fanW], wallNx, 0, wallNz, outerBeamCol, false);
             pushTri([bx, wy, bz], [bx - tx*coreW, wy - downH*0.66, bz - tz*coreW], [bx + tx*coreW, wy - downH*0.66, bz + tz*coreW], wallNx, 0, wallNz, innerCoreCol, false);
           };
-          pushStairwellUpDownSconce(2.159, wySconce, -14.655,  0.9905,  0.1377);
-          pushStairwellUpDownSconce(4.546, wySconce, -19.057,  0.2087,  0.9780);
-          pushStairwellUpDownSconce(23.50, wySconce,  -0.110,  0.0,    -1.0);
-          pushStairwellUpDownSconce(29.54, wySconce, -22.360,  0.0,     1.0);
-          pushStairwellUpDownSconce(27.32, wySconce,   3.300,  0.0,    -1.0);
+          // Stairwell wall sconces mounted strictly on the interior face of stairwell walls (zero exterior protrusion!)
+          pushStairwellUpDownSconce(2.420, wySconce, -14.655,  0.9905,  0.1377);
+          pushStairwellUpDownSconce(4.546, wySconce, -18.520,  0.2087,  0.9780);
+          pushStairwellUpDownSconce(23.50, wySconce,  -0.180,  0.0,    -1.0);
+          pushStairwellUpDownSconce(29.54, wySconce, -22.300,  0.0,     1.0);
+          pushStairwellUpDownSconce(27.32, wySconce,   3.240,  0.0,    -1.0);
           // U9 & U8 Stairwell Wall Sconces (Photo 10 inspiration)
-          pushStairwellUpDownSconce(51.90, wySconce, -20.010,  0.0,     1.0);
-          pushStairwellUpDownSconce(51.90, wySconce,   6.550,  0.0,    -1.0);
-          pushStairwellUpDownSconce(73.10, wySconce, -18.160,  0.0,     1.0);
-          pushStairwellUpDownSconce(73.10, wySconce,   9.500,  0.0,    -1.0);
+          pushStairwellUpDownSconce(51.90, wySconce, -19.980,  0.0,     1.0);
+          pushStairwellUpDownSconce(51.90, wySconce,   6.500,  0.0,    -1.0);
+          pushStairwellUpDownSconce(73.10, wySconce, -18.120,  0.0,     1.0);
+          pushStairwellUpDownSconce(73.10, wySconce,   9.450,  0.0,    -1.0);
         }
       }
     }
@@ -3731,63 +3745,12 @@ const App = {
 
   rebuildShadowAndWeatherBuffers() {
     const gl = this.gl;
-    if (!gl || !this.sun || !this.sun.dir) return;
-    const L = this.sun.dir;
-    if (L[1] <= 0.05) {
-      this.buffers.countShadow = 0;
-      return;
+    if (!gl) return;
+    if (this.buffers.vaoShadow) {
+      gl.deleteVertexArray(this.buffers.vaoShadow);
+      this.buffers.vaoShadow = null;
     }
-
-    const shPos = [], shNorm = [], shCol = [];
-    const pushShTri = (p0, p1, p2, rgba) => {
-      shPos.push(...p0, ...p1, ...p2);
-      shNorm.push(0, 1, 0, 0, 1, 0, 0, 1, 0);
-      shCol.push(...rgba, ...rgba, ...rgba);
-    };
-
-    const shadowAlpha = this.sun.weather === 'sunny' ? 0.24 : (this.sun.weather === 'cloudy' ? 0.08 : 0.04);
-    const shadowCol = [0.06, 0.09, 0.14, shadowAlpha];
-
-    for (const fl of ['1F', '2F', '3F']) {
-      if (this.floorFilter !== 'ALL' && this.floorFilter !== fl) continue;
-      const fd = this.data.floors[fl];
-      const yGround = fd.elevation + 0.015;
-      const hCast = Math.min(fd.height, 2.6);
-      const dx = -(L[0] / L[1]) * hCast;
-      const dz = -(L[2] / L[1]) * hCast;
-
-      for (const w of fd.structural_walls) {
-        const poly = w.poly;
-        for (let i=0; i<poly.length; i++) {
-          const [x1, z1] = poly[i];
-          const [x2, z2] = poly[(i+1)%poly.length];
-          const p0 = [x1, yGround, z1];
-          const p1 = [x2, yGround, z2];
-          const p2 = [x2 + dx*0.4, yGround, z2 + dz*0.4];
-          const p3 = [x1 + dx*0.4, yGround, z1 + dz*0.4];
-          pushShTri(p0, p1, p2, shadowCol);
-          pushShTri(p0, p2, p3, shadowCol);
-        }
-      }
-    }
-
-    if (this.buffers.vaoShadow) gl.deleteVertexArray(this.buffers.vaoShadow);
-    const vaoSh = gl.createVertexArray();
-    gl.bindVertexArray(vaoSh);
-    const makeBuf = (loc, data, size) => {
-      const b = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, b);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
-      gl.enableVertexAttribArray(loc);
-      gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
-      return b;
-    };
-    makeBuf(0, shPos, 3);
-    makeBuf(1, shNorm, 3);
-    makeBuf(2, shCol, 4);
-    this.buffers.vaoShadow = vaoSh;
-    this.buffers.countShadow = shPos.length / 3;
-    gl.bindVertexArray(null);
+    this.buffers.countShadow = 0;
   },
 
   updateSunAndWeather() {
